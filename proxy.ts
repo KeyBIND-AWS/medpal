@@ -8,6 +8,14 @@ export async function proxy(request: NextRequest) {
 
   const { pathname } = request.nextUrl
 
+  if (
+    pathname === '/manifest.webmanifest' ||
+    pathname === '/sw.js' ||
+    pathname.startsWith('/icons/')
+  ) {
+    return supabaseResponse
+  }
+  
   // Protect all pages except the landing page ('/')
   // The matcher configuration already excludes assets/API routes.
   if (pathname !== '/') {
@@ -31,6 +39,6 @@ export const config = {
      * - _next/image (image optimization files)
      * - favicon.ico, sitemap.xml, robots.txt (metadata files)
      */
-    '/((?!api|_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt).*)',
+    '/((?!api|_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt|manifest.webmanifest|sw.js|icons).*)',
   ],
 }
