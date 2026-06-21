@@ -30,7 +30,7 @@ export default function ScanPage() {
     setError(null);
 
     try {
-      const language = localStorage.getItem('hatiddok_language_pref') ?? 'bisaya';
+      const language = localStorage.getItem('medpal_language_pref') ?? 'bisaya';
 
       const res = await fetch('/api/scan', {
         method: 'POST',

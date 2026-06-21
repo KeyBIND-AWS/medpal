@@ -15,7 +15,7 @@ export default function LandingPage() {
   const [language, setLanguage] = useState<Language>('bisaya');
 
   const handleGetStarted = () => {
-    localStorage.setItem('hatiddok_language_pref', language);
+    localStorage.setItem('medpal_language_pref', language);
     router.push('/scan');
   };
 
