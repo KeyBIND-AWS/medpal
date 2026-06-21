@@ -2,13 +2,14 @@ import Link from 'next/link'
 import { signOut } from '@/app/dashboard/actions'
 
 interface HeaderProps {
-  variant?: 'landing' | 'dashboard' | 'records'
+  variant?: 'landing' | 'dashboard' | 'records' | 'settings'
 }
 
 export function Header({ variant = 'landing' }: HeaderProps) {
   const isLanding = variant === 'landing'
   const isDashboard = variant === 'dashboard'
   const isRecords = variant === 'records'
+  const isSettings = variant === 'settings'
 
   return (
     <header className={`w-full max-w-7xl mx-auto px-6 py-6 flex items-center justify-between z-10 ${
@@ -43,6 +44,12 @@ export function Header({ variant = 'landing' }: HeaderProps) {
       {isDashboard && (
         <div className="flex items-center gap-6">
           <Link
+            href="/settings"
+            className="text-sm font-medium text-slate-400 hover:text-slate-200 transition-colors"
+          >
+            Settings
+          </Link>
+          <Link
             href="/"
             className="text-sm font-medium text-slate-400 hover:text-slate-200 transition-colors"
           >
@@ -65,6 +72,15 @@ export function Header({ variant = 'landing' }: HeaderProps) {
           className="text-sm font-medium text-slate-400 hover:text-slate-200 transition-colors"
         >
           Cancel
+        </Link>
+      )}
+
+      {isSettings && (
+        <Link
+          href="/dashboard"
+          className="text-sm font-medium text-slate-400 hover:text-slate-200 transition-colors"
+        >
+          Back to Dashboard
         </Link>
       )}
     </header>
