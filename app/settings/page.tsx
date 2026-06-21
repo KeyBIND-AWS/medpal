@@ -10,6 +10,8 @@ import type { User } from '@supabase/supabase-js'
 
 type Language = 'bisaya' | 'filipino' | 'english'
 
+export const dynamic = 'force-dynamic'
+
 export default function SettingsPage() {
   const router = useRouter()
   const supabase = createClient()
