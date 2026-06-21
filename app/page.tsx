@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { createClient } from '@/utils/supabase/client'
+import { createClient } from '../utils/supabase/client'
 import Link from 'next/link'
 import type { User } from '@supabase/supabase-js'
 
@@ -9,11 +9,19 @@ export default function Home() {
   const [loading, setLoading] = useState(true)
   const [user, setUser] = useState<User | null>(null)
   const [error, setError] = useState<string | null>(null)
-  const supabase = createClient()
 
   useEffect(() => {
     async function checkAndSignIn() {
       try {
+        // Check if environment variables are set before trying to authenticate
+        const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+        const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+        if (!url || !key || url.trim() === '' || key.trim() === '') {
+          throw new Error('Supabase environment variables are not configured. Please add NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY to your .env.local file.')
+        }
+
+        const supabase = createClient()
+
         // First check if there is an active session
         const { data: { session }, error: sessionError } = await supabase.auth.getSession()
         
@@ -25,13 +33,6 @@ export default function Home() {
           setUser(session.user)
           setLoading(false)
           return
-        }
-
-        // Check if environment variables are set before trying to authenticate
-        const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-        const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-        if (!url || !key || url.trim() === '' || key.trim() === '') {
-          throw new Error('Supabase environment variables are not configured. Please add NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY to your .env.local file.')
         }
 
         // Trigger anonymous sign in
@@ -51,7 +52,7 @@ export default function Home() {
     }
 
     checkAndSignIn()
-  }, [supabase.auth])
+  }, [])
 
   return (
     <div className="relative min-h-screen flex flex-col justify-between bg-slate-950 text-slate-100 overflow-hidden font-sans">
