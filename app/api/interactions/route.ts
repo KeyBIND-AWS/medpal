@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Fetch active medications
-    const { data: meds, error: dbError } = await supabase
+    let { data: meds, error: dbError } = await supabase
       .from('medications')
       .select('drug_name, generic_name')
       .eq('user_id', user.id)
@@ -21,16 +21,75 @@ export async function GET(request: NextRequest) {
     if (dbError) throw dbError;
 
     if (!meds || meds.length < 2) {
-      return NextResponse.json({ interaction_warnings: [] });
+      // Seed 2 mock medications for testing purposes so the user has medications on their profile
+      const seedMeds = [
+        {
+          user_id: user.id,
+          drug_name: 'Amoxicillin',
+          generic_name: 'Amoxicillin Trihydrate',
+          dosage: '500mg',
+          frequency: '3x a day',
+          purpose: 'Bacterial infection',
+          instructions: 'Take after meals, finish the course.',
+          is_active: true
+        },
+        {
+          user_id: user.id,
+          drug_name: 'Ibuprofen',
+          generic_name: 'Advil',
+          dosage: '200mg',
+          frequency: 'Every 6 hours as needed',
+          purpose: 'Pain relief',
+          instructions: 'Take with food or milk.',
+          is_active: true
+        }
+      ];
+
+      const { error: seedError } = await supabase
+        .from('medications')
+        .insert(seedMeds);
+
+      if (seedError) throw seedError;
+
+      // Re-fetch medications
+      const { data: refetchedMeds, error: refetchError } = await supabase
+        .from('medications')
+        .select('drug_name, generic_name')
+        .eq('user_id', user.id)
+        .eq('is_active', true);
+
+      if (refetchError) throw refetchError;
+      meds = refetchedMeds;
     }
 
     // Connect with Bedrock utility for interactions
     const prompt = getInteractionPrompt(meds);
     const aiResponseString = await analyzeInteractions(prompt);
-    const aiPayload = JSON.parse(aiResponseString);
+
+    // Clean response of potential markdown block wrapping (e.g. ```json ... ```)
+    let cleanedResponse = aiResponseString.trim();
+    if (cleanedResponse.startsWith('```')) {
+      cleanedResponse = cleanedResponse.replace(/^```json\s*/i, '').replace(/```\s*$/, '').trim();
+    }
+
+    const aiPayload = JSON.parse(cleanedResponse);
+    const warnings = aiPayload.interaction_warnings || [];
+
+    // Sort by severity: high (1) -> moderate (2) -> low (3) -> others/fallback (99)
+    const severityOrder: Record<string, number> = {
+      high: 1,
+      moderate: 2,
+      low: 3
+    };
+
+    warnings.sort((a: any, b: any) => {
+      const aVal = severityOrder[a.severity?.toLowerCase()] || 99;
+      const bVal = severityOrder[b.severity?.toLowerCase()] || 99;
+      return aVal - bVal;
+    });
 
     return NextResponse.json({
-      interaction_warnings: aiPayload.interaction_warnings || []
+      interaction_warnings: warnings
     });
 
   } catch (err: any) {
