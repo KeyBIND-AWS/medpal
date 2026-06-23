@@ -18,29 +18,29 @@ export async function analyzeImage(
   const mockPayload = {
     readable: true,
     summary: language === 'bisaya' 
-      ? `Kini usa ka reseta alang sa pagtambal sa impeksyon. Palihug sunda ang mga instruksyon sa pag-inom.`
+      ? `[Mock] Kini usa ka reseta alang sa pagtambal sa impeksyon. Palihug sunda ang mga instruksyon sa pag-inom.`
       : language === 'filipino'
-      ? `Ito ay isang reseta para sa paggamot ng impeksyon. Mangyaring sundin ang mga tagubilin sa pag-inom.`
-      : `This is a prescription for infection treatment. Please follow the dosage instructions carefully.`,
+      ? `[Mock] Ito ay isang reseta para sa paggamot ng impeksyon. Mangyaring sundin ang mga tagubilin sa pag-inom.`
+      : `[Mock] This is a prescription for infection treatment. Please follow the dosage instructions carefully.`,
     medications: [
       {
-        drug_name: type === 'prescription' ? 'Amoxicillin' : 'Paracetamol',
-        generic_name: type === 'prescription' ? 'Amoxicillin Trihydrate' : 'Acetaminophen',
+        drug_name: type === 'prescription' ? 'Amoxicillin (Mock)' : 'Paracetamol (Mock)',
+        generic_name: type === 'prescription' ? 'Amoxicillin Trihydrate (Mock)' : 'Acetaminophen (Mock)',
         dosage: '500mg',
         frequency: language === 'bisaya' ? 'Katulo sa usa ka adlaw' : language === 'filipino' ? 'Tatlong beses isang araw' : 'Three times daily',
         timing: language === 'bisaya' ? 'Human ug kaon' : language === 'filipino' ? 'Pagkatapos kumain' : 'After meals',
         duration: language === 'bisaya' ? '7 ka adlaw' : language === 'filipino' ? '7 araw' : '7 days',
         purpose: language === 'bisaya' ? 'Impeksyon sa bakterya' : language === 'filipino' ? 'Impeksyon ng bakterya' : 'Bacterial infection',
         instructions: language === 'bisaya' 
-          ? 'Inma ang 1 ka kapsula matag 8 ka oras. Hurota ang tibuok nga kurso.'
+          ? '[Mock] Inma ang 1 ka kapsula matag 8 ka oras. Hurota ang tibuok nga kurso.'
           : language === 'filipino'
-          ? 'Inumin ang 1 kapsula bawat 8 oras. Ubusin ang buong kurso.'
-          : 'Take 1 capsule every 8 hours. Finish the entire course.',
+          ? '[Mock] Inumin ang 1 kapsula bawat 8 oras. Ubusin ang buong kurso.'
+          : '[Mock] Take 1 capsule every 8 hours. Finish the entire course.',
         warnings: language === 'bisaya'
-          ? 'Mahimong makasakit sa tiyan o makalipong.'
+          ? '[Mock] Mahimong makasakit sa tiyan o makalipong.'
           : language === 'filipino'
-          ? 'Maaaring sumakit ang tiyan o makahilo.'
-          : 'May cause mild stomach upset or drowsiness.',
+          ? '[Mock] Maaaring sumakit ang tiyan o makahilo.'
+          : '[Mock] May cause mild stomach upset or drowsiness.',
       }
     ]
   };
@@ -136,8 +136,8 @@ export async function analyzeInteractions(prompt: string): Promise<string> {
     interaction_warnings: [
       {
         severity: 'moderate',
-        explanation: 'Adunay interaksiyon tali sa imong mga aktibong tambal. Mahimo kini nga makapakunhod sa epekto sa usa o makadugang sa risgo sa side effects.',
-        recommendation: 'Palihug og pakisusi sa imong doktor o parmasyutiko kon dunganon ba kini pag-inom.',
+        explanation: '[Mock] Adunay interaksiyon tali sa imong mga aktibong tambal. Mahimo kini nga makapakunhod sa epekto sa usa o makadugang sa risgo sa side effects.',
+        recommendation: '[Mock] Palihug og pakisusi sa imong doktor o parmasyutiko kon dunganon ba kini pag-inom.',
       }
     ]
   };

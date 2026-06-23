@@ -25,22 +25,22 @@ export async function GET(request: NextRequest) {
       const seedMeds = [
         {
           user_id: user.id,
-          drug_name: 'Amoxicillin',
-          generic_name: 'Amoxicillin Trihydrate',
+          drug_name: 'Amoxicillin (Mock)',
+          generic_name: 'Amoxicillin Trihydrate (Mock)',
           dosage: '500mg',
           frequency: '3x a day',
-          purpose: 'Bacterial infection',
-          instructions: 'Take after meals, finish the course.',
+          purpose: 'Bacterial infection (Mock)',
+          instructions: 'Take after meals, finish the course. (Mock)',
           is_active: true
         },
         {
           user_id: user.id,
-          drug_name: 'Ibuprofen',
-          generic_name: 'Advil',
+          drug_name: 'Ibuprofen (Mock)',
+          generic_name: 'Advil (Mock)',
           dosage: '200mg',
           frequency: 'Every 6 hours as needed',
-          purpose: 'Pain relief',
-          instructions: 'Take with food or milk.',
+          purpose: 'Pain relief (Mock)',
+          instructions: 'Take with food or milk. (Mock)',
           is_active: true
         }
       ];
