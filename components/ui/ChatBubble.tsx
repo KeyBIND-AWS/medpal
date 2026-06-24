@@ -1,0 +1,43 @@
+"use client";
+
+import React from 'react';
+import { RobotIcon } from '@phosphor-icons/react';
+
+interface ChatBubbleProps {
+    message: string;
+    isUser: boolean;
+    isTyping?: boolean;
+}
+
+export function ChatBubble({ message, isUser, isTyping }: ChatBubbleProps) {
+    if (isUser) {
+        return (
+            <div className="flex justify-end w-full animate-in fade-in slide-in-from-right-2 duration-300">
+                <div className="bg-[#2B4BFF] text-white text-[15px] leading-relaxed font-medium px-4 py-3 rounded-2xl rounded-tr-sm shadow-md max-w-[85%]">
+                    {message}
+                </div>
+            </div>
+        );
+    }
+
+    return (
+        <div className="flex justify-start w-full gap-2 animate-in fade-in slide-in-from-left-2 duration-300">
+            {/* MedPal Mini Avatar */}
+            <div className="w-6 h-6 rounded-full bg-[#2B4BFF]/10 flex items-center justify-center shrink-0 mt-1">
+                <RobotIcon className="w-4 h-4 text-[#2B4BFF]" weight="fill" />
+            </div>
+
+            <div className="bg-white text-slate-800 text-[15px] leading-relaxed px-4 py-3 rounded-2xl rounded-tl-sm shadow-sm border border-slate-100 max-w-[85%]">
+                {isTyping ? (
+                    <div className="flex gap-1.5 items-center h-6 px-1">
+                        <div className="w-2 h-2 bg-slate-300 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                        <div className="w-2 h-2 bg-slate-300 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                        <div className="w-2 h-2 bg-slate-300 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                    </div>
+                ) : (
+                    <div dangerouslySetInnerHTML={{ __html: message }} />
+                )}
+            </div>
+        </div>
+    );
+}
