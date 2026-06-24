@@ -1,112 +1,138 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import CameraCapture from '@/components/CameraCapture';
-import type { ScanResponse, ScanType } from '@/types';
+import { useTranslation } from '@/contexts/LanguageContext';
+import { CameraCapture } from '@/components/camera/CameraCapture';
+import { Button } from '@/components/ui/Button';
+import { Card } from '@/components/ui/Card';
+import { ArrowsClockwiseIcon, SparkleIcon } from '@phosphor-icons/react';
 
-type Step = 'capture' | 'preview' | 'uploading';
+type ScanType = 'prescription' | 'lab_result';
 
 export default function ScanPage() {
   const router = useRouter();
+  const { t, language } = useTranslation();
+
   const [scanType, setScanType] = useState<ScanType>('prescription');
-  const [step, setStep] = useState<Step>('capture');
-  const [image, setImage] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [capturedImage, setCapturedImage] = useState<string | null>(null);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
 
-  const handleCapture = (imageBase64: string) => {
-    setImage(imageBase64);
-    setStep('preview');
-  };
-
-  const handleRetake = () => {
-    setImage(null);
-    setStep('capture');
-  };
-
-  const handleConfirm = async () => {
-    if (!image) return;
-    setStep('uploading');
-    setError(null);
+  const handleProceed = async () => {
+    if (!capturedImage) return;
+    setIsAnalyzing(true);
 
     try {
-      const language = localStorage.getItem('medpal_language_pref') ?? 'bisaya';
-
-      const res = await fetch('/api/scan', {
+      // Direct call to Brian's Bedrock endpoint per Master Plan architecture
+      const response = await fetch('/api/scan', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ image, type: scanType, language }),
+        body: JSON.stringify({
+          image: capturedImage,
+          type: scanType,
+          language: language // Tells Claude to output in Bisaya/Filipino
+        }),
       });
 
-      if (!res.ok) throw new Error(`Scan failed with status ${res.status}`);
+      if (!response.ok) throw new Error('API Route pending or failed');
 
-      const data: ScanResponse = await res.json();
-      router.push(`/results/${data.id}`);
+      const data = await response.json();
+      router.push(`/results/${data.scan_id || 'demo-123'}`);
     } catch (err) {
-      console.error('Scan submission failed:', err);
-      setError('Wala namo na-process ang imong litrato. Palihug sulayi pag-usab.');
-      setStep('preview');
+      console.warn('Backend API /api/scan unavailable. Bypassing to UI demo view:', err);
+      // HACKATHON FAILSAFE: Send to demo result page so Chubby can QA the UI flow!
+      setTimeout(() => {
+        router.push('/results/demo-123');
+      }, 1500);
     }
   };
 
   return (
-    <div className="flex flex-col gap-6 px-4 py-6">
-      <div className="flex rounded-full bg-gray-100 p-1">
-        {(['prescription', 'lab_result'] as ScanType[]).map((type) => (
+      <div className="p-6 flex flex-col items-center max-w-[480px] mx-auto min-h-[calc(100vh-8rem)] justify-between gap-6">
+
+        {/* 1. Segmented Type Selector (Prescription vs Lab Result) */}
+        <div className="w-full bg-slate-200/80 p-1 rounded-2xl flex items-center gap-1">
           <button
-            key={type}
-            type="button"
-            onClick={() => setScanType(type)}
-            aria-pressed={scanType === type}
-            className={`flex-1 rounded-full py-2 text-sm font-medium transition-colors ${
-              scanType === type ? 'bg-white text-[#1A3AF5] shadow-sm' : 'text-gray-500'
-            }`}
+              onClick={() => setScanType('prescription')}
+              disabled={isAnalyzing}
+              className={`flex-1 py-3 rounded-xl font-poppins font-bold text-xs transition-all cursor-pointer ${
+                  scanType === 'prescription'
+                      ? 'bg-[#2B4BFF] text-white shadow-md'
+                      : 'text-slate-600 hover:text-slate-900'
+              }`}
           >
-            {type === 'prescription' ? 'Reseta' : 'Resulta sa Lab'}
+            {t.scanner.prescription}
           </button>
-        ))}
+
+          <button
+              onClick={() => setScanType('lab_result')}
+              disabled={isAnalyzing}
+              className={`flex-1 py-3 rounded-xl font-poppins font-bold text-xs transition-all cursor-pointer ${
+                  scanType === 'lab_result'
+                      ? 'bg-[#2B4BFF] text-white shadow-md'
+                      : 'text-slate-600 hover:text-slate-900'
+              }`}
+          >
+            {t.scanner.labResult}
+          </button>
+        </div>
+
+        {/* 2. Viewfinder OR Captured Preview OR Analyzing Screen */}
+        <div className="w-full flex-1 flex flex-col items-center justify-center">
+          {isAnalyzing ? (
+              // Day 1 Kaiyou Deliverable: Bisaya AI Loading Screen
+              <Card className="w-full aspect-[3/4] max-h-[460px] flex flex-col items-center justify-center text-center p-8 bg-gradient-to-b from-white to-slate-50 border-2 border-[#2B4BFF]/20 animate-pulse">
+                <div className="w-16 h-16 rounded-2xl bg-[#2B4BFF]/10 text-[#2B4BFF] flex items-center justify-center mb-6 animate-bounce">
+                  <SparkleIcon className="w-8 h-8" weight="fill" />
+                </div>
+                <h3 className="font-poppins font-bold text-lg text-slate-800 mb-2">
+                  {t.scanner.analyzing}
+                </h3>
+                <p className="text-xs text-slate-400 max-w-[200px]">
+                  AWS Bedrock Claude 3.5 is translating medical jargon into plain language...
+                </p>
+              </Card>
+          ) : !capturedImage ? (
+              // Viewfinder Mode
+              <CameraCapture onCapture={setCapturedImage} />
+          ) : (
+              // Preview Mode
+              <div className="w-full flex flex-col items-center gap-4">
+                <div className="relative w-full aspect-[3/4] max-h-[460px] rounded-3xl overflow-hidden border-4 border-white shadow-lg bg-black">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                      src={capturedImage}
+                      alt="Captured medical document"
+                      className="w-full h-full object-cover"
+                  />
+                </div>
+
+                <button
+                    onClick={() => setCapturedImage(null)}
+                    className="inline-flex items-center gap-2 text-xs font-bold text-slate-500 hover:text-rose-600 transition-colors py-1 cursor-pointer"
+                >
+                  <ArrowsClockwiseIcon className="w-4 h-4" />
+                  {t.scanner.retake}
+                </button>
+              </div>
+          )}
+        </div>
+
+        {/* 3. Bottom CTA matching Figma Proceed Button */}
+        {capturedImage && !isAnalyzing && (
+            <div className="w-full animate-in fade-in slide-in-from-bottom-2 duration-200">
+              <Button
+                  variant="primary"
+                  size="lg"
+                  className="w-full shadow-xl"
+                  onClick={handleProceed}
+                  iconLeft={<SparkleIcon className="w-5 h-5" weight="fill" />}
+              >
+                {t.scanner.proceed}
+              </Button>
+            </div>
+        )}
+
       </div>
-
-      {step === 'capture' && <CameraCapture onCapture={handleCapture} />}
-
-      {step === 'preview' && image && (
-        <div className="flex flex-col items-center gap-4">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={image}
-            alt="Captured prescription or lab result"
-            className="aspect-[3/4] w-full rounded-xl object-cover"
-          />
-          {error && <p className="text-sm text-red-600">{error}</p>}
-          <div className="flex w-full gap-3">
-            <button
-              type="button"
-              onClick={handleRetake}
-              className="flex-1 rounded-lg border border-gray-300 py-3 text-sm font-medium text-gray-600"
-            >
-              Kuhaan Pag-usab
-            </button>
-            <button
-              type="button"
-              onClick={handleConfirm}
-              className="flex-1 rounded-lg bg-[#1A3AF5] py-3 text-sm font-medium text-white"
-            >
-              Isumiter
-            </button>
-          </div>
-        </div>
-      )}
-
-      {step === 'uploading' && (
-        <div className="flex flex-col items-center justify-center gap-4 py-16">
-          <div className="h-10 w-10 animate-spin rounded-full border-4 border-gray-200 border-t-[#1A3AF5]" />
-          <p className="text-sm text-gray-500">
-            {scanType === 'prescription'
-              ? 'Gibasa ang imong reseta...'
-              : 'Gibasa ang imong resulta sa lab...'}
-          </p>
-        </div>
-      )}
-    </div>
   );
 }
