@@ -40,4 +40,20 @@ export type Dictionary = {
         prescriptions: string;
         labResults: string;
     };
+
+    remindersPage: {
+        title: string;
+        morning: string;
+        afternoon: string;
+        evening: string;
+        emptyTitle: string;
+        emptyDesc: string;
+    };
+
+    chatPage: {
+        title: string,
+        greeting: string;
+        placeholder: string;
+        emptyDisclaimer: string;
+    };
 };
