@@ -33,4 +33,11 @@ export type Dictionary = {
         setReminders: string;
         saving: string;
     };
+
+    recordsList: {
+        title: string;
+        all: string;
+        prescriptions: string;
+        labResults: string;
+    };
 };
