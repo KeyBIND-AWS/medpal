@@ -1,40 +1,42 @@
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
-import AppShell from '@/components/AppShell';
-import ServiceWorkerRegistration from '@/components/ServiceWorkerRegistration';
+import { LanguageProvider } from '@/contexts/LanguageContext';
+import ServiceWorkerRegistration from '@/components/pwa/ServiceWorkerRegistration';
+import { ShellLayout } from '@/components/navigation/ShellLayout';
 
 export const metadata: Metadata = {
-  title: 'HatidDok',
-  description: 'AI-powered prescription and lab result reader in Bisaya',
-  manifest: '/manifest.webmanifest',
-  // iOS Safari ignores manifest.json for install behavior — these are required
-  // separately for "Add to Home Screen" to look right on iPhone (we're testing
-  // on iOS Safari per the QA plan, so this isn't optional).
-  appleWebApp: {
-    capable: true,
-    statusBarStyle: 'default',
-    title: 'HatidDok',
-  },
+    title: 'MedPal',
+    description: 'AI-powered prescription and lab result reader in Bisaya & Filipino',
+    manifest: '/manifest.webmanifest', // Next.js automatically maps this to app/manifest.ts
+    appleWebApp: {
+        capable: true,
+        statusBarStyle: 'default',
+        title: 'MedPal',
+    },
 };
 
 export const viewport: Viewport = {
-  themeColor: '#1A3AF5',
-  width: 'device-width',
-  initialScale: 1,
-  maximumScale: 1,
+    themeColor: '#2B4BFF',
+    width: 'device-width',
+    initialScale: 1,
+    maximumScale: 1,
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  return (
-    <html lang="en">
-      <body className="bg-gray-50 text-gray-900 antialiased">
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+    return (
+        <html lang="en">
+        <body className="bg-[#EFEFEF] text-slate-900 font-poppins h-screen overflow-hidden">
+        {/* PWA Service Worker for caching and push notifications */}
         <ServiceWorkerRegistration />
-        <AppShell>{children}</AppShell>
-      </body>
-    </html>
-  );
+
+        {/* Global State Provider for instant i18n switching */}
+        <LanguageProvider>
+            {/* Client Layout handling the desktop sidebar and mobile bottom nav */}
+            <ShellLayout>
+                {children}
+            </ShellLayout>
+        </LanguageProvider>
+        </body>
+        </html>
+    );
 }

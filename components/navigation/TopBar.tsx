@@ -21,7 +21,7 @@ export function TopBar() {
     const isSubPage = pathname.includes('/add') || pathname.includes('/results/') || pathname.split('/').length > 2;
 
     return (
-        <header className="w-full max-w-[480px] mx-auto bg-[#2B4BFF] text-white px-6 py-5 rounded-b-3xl shadow-sm flex items-center justify-between">
+        <header className="w-full bg-[#2B4BFF] text-white px-6 py-5 rounded-b-3xl shadow-sm flex items-center justify-between">
             <div className="flex items-center gap-3">
                 {isSubPage && (
                     <button
@@ -37,10 +37,11 @@ export function TopBar() {
                 </h1>
             </div>
 
-            {/* Temporary MedPal Eye Logo badge */}
-            <div className="w-8 h-5 bg-white/20 rounded-full flex items-center justify-center text-[10px] font-bold">
-                👁️
-            </div>
+            <img
+                src="/logo.svg"
+                alt="MedPal Logo"
+                className="w-9 h-auto shrink-0 drop-shadow-sm"
+            />
         </header>
     );
 }
