@@ -20,7 +20,6 @@ export function CameraCapture({ onCapture }: CameraCaptureProps) {
 
   const [status, setStatus] = useState<CameraStatus>('requesting');
 
-  // Safely stop all hardware tracks
   const stopStream = useCallback(() => {
     if (streamRef.current) {
       streamRef.current.getTracks().forEach(track => track.stop());
@@ -29,7 +28,6 @@ export function CameraCapture({ onCapture }: CameraCaptureProps) {
   }, []);
 
   useEffect(() => {
-    // Strict Mode Guard: prevents writing to stale refs if component double-mounts
     let cancelled = false;
 
     async function startCamera() {
@@ -42,7 +40,7 @@ export function CameraCapture({ onCapture }: CameraCaptureProps) {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({
           video: {
-            facingMode: { ideal: 'environment' }, // Works on webcam and phone
+            facingMode: { ideal: 'environment' },
             width: { ideal: 1920 },
             height: { ideal: 1080 }
           },
@@ -57,17 +55,9 @@ export function CameraCapture({ onCapture }: CameraCaptureProps) {
         streamRef.current = stream;
 
         if (videoRef.current) {
+          // Simply attach the stream. Do NOT call play() here.
           videoRef.current.srcObject = stream;
-          try {
-            // Explicitly force play (fixes the black screen issue)
-            await videoRef.current.play();
-          } catch (playErr) {
-            // Ignore AbortError caused by rapid unmounting in dev
-            if ((playErr as DOMException).name !== 'AbortError') throw playErr;
-          }
         }
-
-        if (!cancelled) setStatus('streaming');
       } catch (err) {
         if (!cancelled) {
           console.error('Camera permission error:', err);
@@ -84,12 +74,20 @@ export function CameraCapture({ onCapture }: CameraCaptureProps) {
     };
   }, [stopStream]);
 
+  // Triggered natively when the browser successfully maps the stream to the video element
+  const handleVideoReady = () => {
+    if (videoRef.current) {
+      videoRef.current.play().catch(err => {
+        if (err.name !== 'AbortError') console.error('Video play error:', err);
+      });
+    }
+  };
+
   const handleSnap = () => {
     const video = videoRef.current;
     const canvas = canvasRef.current;
     if (!video || !canvas) return;
 
-    // Match native video resolution
     canvas.width = video.videoWidth || 1080;
     canvas.height = video.videoHeight || 1920;
     const ctx = canvas.getContext('2d');
@@ -128,7 +126,7 @@ export function CameraCapture({ onCapture }: CameraCaptureProps) {
 
           <div
               onClick={() => fileInputRef.current?.click()}
-              className="w-full h-full max-h-160 rounded-3xl border-2 border-dashed border-[#2B4BFF] bg-[#2B4BFF]/5 flex flex-col items-center justify-center gap-3 cursor-pointer hover:bg-[#2B4BFF]/10 transition-all group select-none p-6 text-center shadow-inner"
+              className="w-full h-full max-h-[640px] rounded-3xl border-2 border-dashed border-[#2B4BFF] bg-[#2B4BFF]/5 flex flex-col items-center justify-center gap-3 cursor-pointer hover:bg-[#2B4BFF]/10 transition-all group select-none p-6 text-center shadow-inner"
           >
             <div className="w-16 h-16 rounded-full bg-[#2B4BFF] text-white flex items-center justify-center group-hover:scale-110 transition-transform shadow-md">
               <UploadSimpleIcon className="w-8 h-8" weight="fill" />
@@ -148,11 +146,14 @@ export function CameraCapture({ onCapture }: CameraCaptureProps) {
   return (
       <div className="w-full h-full flex flex-col items-center gap-4 animate-in fade-in zoom-in-95 duration-300">
 
-        <div className="relative w-full h-full max-h-160 rounded-3xl overflow-hidden bg-black shadow-xl">
+        <div className="relative w-full h-full max-h-[640px] rounded-3xl overflow-hidden bg-black shadow-xl">
           <video
               ref={videoRef}
               playsInline
               muted
+              autoPlay
+              onLoadedMetadata={handleVideoReady}
+              onPlaying={() => setStatus('streaming')} // Only update UI when pixels are actually moving!
               className="w-full h-full object-cover"
           />
 
@@ -182,7 +183,6 @@ export function CameraCapture({ onCapture }: CameraCaptureProps) {
               <UploadSimpleIcon className="w-5 h-5" />
             </button>
 
-            {/* Giant White Shutter Button */}
             <button
                 onClick={handleSnap}
                 disabled={status !== 'streaming'}
@@ -191,13 +191,12 @@ export function CameraCapture({ onCapture }: CameraCaptureProps) {
               <div className="w-12 h-12 rounded-full bg-[#2B4BFF]" />
             </button>
 
-            <div className="w-12" /> {/* Balance spacer */}
+            <div className="w-12" />
           </div>
         </div>
 
         <canvas ref={canvasRef} className="hidden" />
 
-        {/* Hidden manual input */}
         <input
             type="file"
             ref={fileInputRef}
