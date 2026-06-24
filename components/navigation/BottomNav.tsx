@@ -19,7 +19,7 @@ export function BottomNav() {
                     <Link
                         key={item.href}
                         href={item.href}
-                        className={`flex flex-col items-center justify-center w-16 gap-1 transition-colors ${
+                        className={`flex flex-1 flex-col items-center justify-center gap-1 transition-colors ${
                             isActive ? 'text-[#2B4BFF]' : 'text-slate-400 hover:text-slate-600'
                         }`}
                     >
@@ -27,7 +27,7 @@ export function BottomNav() {
                             weight={isActive ? "fill" : "regular"}
                             className="w-6 h-6"
                         />
-                        <span className="text-sm tracking-wide">
+                        <span className={`w-full text-center truncate px-1 text-[10px] tracking-tight ${isActive ? 'font-bold' : 'font-medium'}`}>
                           {t.nav[item.nameKey]}
                         </span>
                     </Link>

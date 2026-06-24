@@ -48,14 +48,13 @@ export default function ScanPage() {
   };
 
   return (
-      <div className="p-6 flex flex-col items-center max-w-[480px] mx-auto min-h-[calc(100vh-8rem)] justify-between gap-6">
+      <div className="flex flex-col w-full h-full min-h-[calc(100vh-8rem)] p-4 md:p-6 gap-5">
 
-        {/* 1. Segmented Type Selector (Prescription vs Lab Result) */}
-        <div className="w-full bg-slate-200/80 p-1 rounded-2xl flex items-center gap-1">
+        <div className="w-full bg-slate-200/80 p-1 rounded-2xl flex items-center gap-1 shrink-0">
           <button
               onClick={() => setScanType('prescription')}
               disabled={isAnalyzing}
-              className={`flex-1 py-3 rounded-xl font-poppins font-bold text-xs transition-all cursor-pointer ${
+              className={`flex-1 py-3 rounded-xl font-poppins font-bold text-sm transition-all ${
                   scanType === 'prescription'
                       ? 'bg-[#2B4BFF] text-white shadow-md'
                       : 'text-slate-600 hover:text-slate-900'
@@ -67,7 +66,7 @@ export default function ScanPage() {
           <button
               onClick={() => setScanType('lab_result')}
               disabled={isAnalyzing}
-              className={`flex-1 py-3 rounded-xl font-poppins font-bold text-xs transition-all cursor-pointer ${
+              className={`flex-1 py-3 rounded-xl font-poppins font-bold text-sm transition-all ${
                   scanType === 'lab_result'
                       ? 'bg-[#2B4BFF] text-white shadow-md'
                       : 'text-slate-600 hover:text-slate-900'
@@ -77,8 +76,7 @@ export default function ScanPage() {
           </button>
         </div>
 
-        {/* 2. Viewfinder OR Captured Preview OR Analyzing Screen */}
-        <div className="w-full flex-1 flex flex-col items-center justify-center">
+        <div className="w-full flex-1 flex flex-col items-center justify-center min-h-0">
           {isAnalyzing ? (
               // Day 1 Kaiyou Deliverable: Bisaya AI Loading Screen
               <Card className="w-full aspect-[3/4] max-h-[460px] flex flex-col items-center justify-center text-center p-8 bg-gradient-to-b from-white to-slate-50 border-2 border-[#2B4BFF]/20 animate-pulse">
@@ -97,8 +95,8 @@ export default function ScanPage() {
               <CameraCapture onCapture={setCapturedImage} />
           ) : (
               // Preview Mode
-              <div className="w-full flex flex-col items-center gap-4">
-                <div className="relative w-full aspect-[3/4] max-h-[460px] rounded-3xl overflow-hidden border-4 border-white shadow-lg bg-black">
+              <div className="w-full h-full flex flex-col items-center gap-4">
+                <div className="relative w-full h-full max-h-[640px] rounded-3xl overflow-hidden border-4 border-white shadow-lg bg-black">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                       src={capturedImage}
@@ -109,7 +107,7 @@ export default function ScanPage() {
 
                 <button
                     onClick={() => setCapturedImage(null)}
-                    className="inline-flex items-center gap-2 text-xs font-bold text-slate-500 hover:text-rose-600 transition-colors py-1 cursor-pointer"
+                    className="inline-flex items-center gap-2 text-sm font-bold text-slate-500 hover:text-rose-600 transition-colors py-1 cursor-pointer shrink-0"
                 >
                   <ArrowsClockwiseIcon className="w-4 h-4" />
                   {t.scanner.retake}
@@ -118,9 +116,8 @@ export default function ScanPage() {
           )}
         </div>
 
-        {/* 3. Bottom CTA matching Figma Proceed Button */}
         {capturedImage && !isAnalyzing && (
-            <div className="w-full animate-in fade-in slide-in-from-bottom-2 duration-200">
+            <div className="w-full animate-in fade-in slide-in-from-bottom-2 duration-200 shrink-0">
               <Button
                   variant="primary"
                   size="lg"
