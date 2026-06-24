@@ -117,7 +117,7 @@ export function CameraCapture({ onCapture }: CameraCaptureProps) {
   // --- UI RENDER: FALLBACK MODE ---
   if (status === 'unsupported' || status === 'denied') {
     return (
-        <div className="w-full flex flex-col items-center gap-4 animate-in fade-in zoom-in-95 duration-300">
+        <div className="w-full h-full flex flex-col items-center gap-4 animate-in fade-in zoom-in-95 duration-300">
           <input
               type="file"
               ref={fileInputRef}
@@ -126,10 +126,9 @@ export function CameraCapture({ onCapture }: CameraCaptureProps) {
               className="hidden"
           />
 
-          {/* The MedPal Dashed Upload Box */}
           <div
               onClick={() => fileInputRef.current?.click()}
-              className="w-full aspect-4/5 max-h-140 rounded-3xl border-2 border-dashed border-[#2B4BFF] bg-[#2B4BFF]/5 flex flex-col items-center justify-center gap-3 cursor-pointer hover:bg-[#2B4BFF]/10 transition-all group select-none p-6 text-center shadow-inner"
+              className="w-full h-full max-h-160 rounded-3xl border-2 border-dashed border-[#2B4BFF] bg-[#2B4BFF]/5 flex flex-col items-center justify-center gap-3 cursor-pointer hover:bg-[#2B4BFF]/10 transition-all group select-none p-6 text-center shadow-inner"
           >
             <div className="w-16 h-16 rounded-full bg-[#2B4BFF] text-white flex items-center justify-center group-hover:scale-110 transition-transform shadow-md">
               <UploadSimpleIcon className="w-8 h-8" weight="fill" />
@@ -147,9 +146,9 @@ export function CameraCapture({ onCapture }: CameraCaptureProps) {
 
   // --- UI RENDER: VIEWFINDER MODE ---
   return (
-      <div className="w-full flex flex-col items-center gap-4 animate-in fade-in zoom-in-95 duration-300">
+      <div className="w-full h-full flex flex-col items-center gap-4 animate-in fade-in zoom-in-95 duration-300">
 
-        <div className="relative w-full aspect-4/5 max-h-140 rounded-3xl overflow-hidden bg-black shadow-xl">
+        <div className="relative w-full h-full max-h-160 rounded-3xl overflow-hidden bg-black shadow-xl">
           <video
               ref={videoRef}
               playsInline

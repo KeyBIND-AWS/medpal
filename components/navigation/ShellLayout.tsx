@@ -26,8 +26,8 @@ export function ShellLayout({ children }: { children: React.ReactNode }) {
             </div>
 
             {/* MAIN CONTENT AREA */}
-            <main className="flex-1 h-full overflow-y-auto relative flex justify-center pb-16 md:pb-0">
-                <div className="w-full md:max-w-[480px] bg-[#EFEFEF] min-h-full md:border-x md:border-none flex flex-col">
+            <main className="flex-1 h-full overflow-y-auto bg-[#EFEFEF] relative flex justify-center pb-16 md:pb-0">
+                <div className="w-full md:max-w-120 min-h-full md:border-x md:border-none flex flex-col">
 
                     {/* MOBILE/APP TOPBAR */}
                     <div className="sticky top-0 z-40">

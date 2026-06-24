@@ -36,10 +36,10 @@ export const dictionaries: Record<Language, Dictionary> = {
     },
     filipino: {
         nav: {
-            scan: 'I-scan',
-            records: 'Mga Tala',
-            reminders: 'Mga Paalala',
-            settings: 'Mga Setting'
+            scan: 'Scan',
+            records: 'Tala',
+            reminders: 'Paalala',
+            settings: 'Settings'
         },
         disclaimer: {
             text: 'Paskabi: Ipinapaliwanag ng MedPal ang iyong reseta sa simpleng wika. Hindi ito pamalit sa iyong doktor — palaging sundin ang kanilang mga tagubilin.',
@@ -69,10 +69,10 @@ export const dictionaries: Record<Language, Dictionary> = {
     },
     bisaya: {
         nav: {
-            scan: 'I-scan',
-            records: 'Mga Rekord',
-            reminders: 'Mga Pahinumdom',
-            settings: 'Mga Setting'
+            scan: 'Scan',
+            records: 'Rekord',
+            reminders: 'Pahinumdom',
+            settings: 'Settings'
         },
         disclaimer: {
             text: 'Pahibalo: Gipasabot sa MedPal ang imong reseta sa yano nga pinulongan. Dili kini hulip sa imong doktor — kanunay sunda ang ilang mga tugon.',
