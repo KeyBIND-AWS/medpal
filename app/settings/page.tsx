@@ -7,6 +7,7 @@ import { createClient } from '@/utils/supabase/client'
 import { Header } from '@/components/Header'
 import { Footer } from '@/components/Footer'
 import type { User } from '@supabase/supabase-js'
+import { useTranslation } from "@/contexts/LanguageContext";
 
 type Language = 'bisaya' | 'filipino' | 'english'
 
@@ -19,7 +20,7 @@ export default function SettingsPage() {
   // State
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
-  const [language, setLanguage] = useState<Language>('english')
+  const { language, setLanguage } = useTranslation()
   const [savingLanguage, setSavingLanguage] = useState(false)
   
   // UI Alerts
@@ -83,34 +84,21 @@ export default function SettingsPage() {
 
   const handleLanguageChange = async (newLang: Language) => {
     if (!user) return
-    
-    setLanguage(newLang)
+
     setSavingLanguage(true)
     setError(null)
     setSuccessMsg(null)
 
     try {
-      // 1. Save to Database
-      const { error: updateError } = await supabase
-        .from('users')
-        .update({ language_pref: newLang })
-        .eq('id', user.id)
+      await setLanguage(newLang)
 
-      if (updateError) throw updateError
-
-      // 2. Cache in localStorage
-      localStorage.setItem('medpal_language_pref', newLang)
       setSuccessMsg('Language preference updated successfully!')
       
       // Auto-hide success message after 2.5 seconds
       setTimeout(() => setSuccessMsg(null), 2500)
     } catch (err) {
       console.error('Error saving language preference:', err)
-      
-      // Fallback: save locally anyway and notify user of local storage fallback
-      localStorage.setItem('medpal_language_pref', newLang)
-      setSuccessMsg('Language updated locally (unable to sync with server).')
-      setTimeout(() => setSuccessMsg(null), 2500)
+      setError('Failed to sync language with server.')
     } finally {
       setSavingLanguage(false)
     }
