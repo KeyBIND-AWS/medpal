@@ -33,6 +33,12 @@ export const dictionaries: Record<Language, Dictionary> = {
             setReminders: 'Set Reminders',
             saving: 'Saving...',
         },
+        recordsList: {
+            title: 'My Records',
+            all: 'All',
+            prescriptions: 'Prescriptions',
+            labResults: 'Lab Results'
+        },
     },
     filipino: {
         nav: {
@@ -66,6 +72,12 @@ export const dictionaries: Record<Language, Dictionary> = {
             setReminders: 'Magtakda ng Paalala',
             saving: 'Sini-save...',
         },
+        recordsList: {
+            title: 'Mga Rekord',
+            all: 'Lahat',
+            prescriptions: 'Reseta',
+            labResults: 'Resulta sa Lab'
+        },
     },
     bisaya: {
         nav: {
@@ -98,6 +110,12 @@ export const dictionaries: Record<Language, Dictionary> = {
             saveToRecords: 'I-save sa Records',
             setReminders: 'Pagbutang og Reminders',
             saving: 'Gina-save...',
+        },
+        recordsList: {
+            title: 'Akong Records',
+            all: 'Tanan',
+            prescriptions: 'Reseta',
+            labResults: 'Resulta sa Lab'
         },
     },
 };
