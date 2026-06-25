@@ -54,7 +54,7 @@ export default function ChatPage() {
             {/* Scrollable Message List */}
             <div className="flex-1 p-4 md:p-6 flex flex-col gap-4 pb-24">
 
-                <p className="text-center text-xs text-slate-400 font-medium mb-4 mx-8">
+                <p className="text-center text-xs text-muted font-medium mb-4 mx-8">
                     {t.chatPage.emptyDisclaimer}
                 </p>
 
@@ -71,7 +71,7 @@ export default function ChatPage() {
             </div>
 
             {/* Sticky Input Area */}
-            <div className="sticky bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-[#EFEFEF] via-[#EFEFEF] to-transparent pt-8 z-10">
+            <div className="sticky bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-canvas via-canvas to-transparent pt-8 z-10">
                 <ChatInput
                     placeholder={t.chatPage.placeholder}
                     onSend={handleSendMessage}

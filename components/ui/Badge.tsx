@@ -11,11 +11,11 @@ export function Badge({
                           variant = 'primary',
                           className = ''
                       }: BadgeProps) {
-    const baseStyles = "inline-flex items-center justify-center font-poppins font-bold tracking-wide rounded-full px-3 py-1 text-[10px] uppercase select-none";
+    const baseStyles = "inline-flex items-center justify-center font-sans font-bold tracking-wide rounded-full px-3 py-1 text-[10px] uppercase select-none";
 
     const variants = {
-        primary: "bg-[#2B4BFF] text-white shadow-xs",
-        danger: "bg-[#E74C3C]/10 text-[#E74C3C] border border-[#E74C3C]/20",
+        primary: "bg-primary text-white shadow-xs",
+        danger: "bg-danger/10 text-danger border border-danger/20",
         warning: "bg-amber-500/10 text-amber-700 border border-amber-500/20",
         neutral: "bg-slate-200 text-slate-700"
     };

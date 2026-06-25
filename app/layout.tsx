@@ -1,8 +1,15 @@
 import type { Metadata, Viewport } from 'next';
+import { Inter } from 'next/font/google';
 import './globals.css';
 import { LanguageProvider } from '@/contexts/LanguageContext';
 import ServiceWorkerRegistration from '@/components/pwa/ServiceWorkerRegistration';
 import { ShellLayout } from '@/components/navigation/ShellLayout';
+
+const inter = Inter({
+    subsets: ['latin'],
+    variable: '--font-sans',
+    display: 'swap',
+});
 
 export const metadata: Metadata = {
     title: 'MedPal',
@@ -24,8 +31,8 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
     return (
-        <html lang="en">
-        <body className="bg-[#EFEFEF] text-slate-900 font-poppins h-screen overflow-hidden">
+        <html lang="en" className={inter.variable}>
+        <body className="bg-canvas text-ink font-sans h-screen overflow-hidden">
         {/* PWA Service Worker for caching and push notifications */}
         <ServiceWorkerRegistration />
 

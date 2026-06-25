@@ -21,7 +21,7 @@ export function ReminderCard({ drugName, dosage, time, instruction, isActive, on
 
                 {/* Time & Dosage Header */}
                 <div className="flex items-center gap-2">
-          <span className="font-poppins font-extrabold text-xl text-slate-900 tracking-tight">
+          <span className="font-sans font-extrabold text-xl text-ink tracking-tight">
             {time}
           </span>
                     <span className="bg-slate-100 text-slate-600 text-[10px] font-bold px-2 py-0.5 rounded-md">
@@ -31,11 +31,11 @@ export function ReminderCard({ drugName, dosage, time, instruction, isActive, on
 
                 {/* Drug Name & Instructions */}
                 <div className="flex flex-col">
-                    <div className="flex items-center gap-1.5 text-[#2B4BFF] font-semibold text-[15px]">
+                    <div className="flex items-center gap-1.5 text-primary font-semibold text-[15px]">
                         <PillIcon className="w-4 h-4" weight="fill" />
                         {drugName}
                     </div>
-                    <div className="flex items-center gap-1.5 text-slate-500 text-xs mt-1 font-medium">
+                    <div className="flex items-center gap-1.5 text-muted text-xs mt-1 font-medium">
                         <ClockIcon className="w-3.5 h-3.5" />
                         {instruction}
                     </div>

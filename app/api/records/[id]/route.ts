@@ -40,10 +40,11 @@ export async function GET(request: NextRequest, context: RouteContext) {
       `)
       .eq('id', recordId)
       .eq('user_id', user.id)
-      .single();
+      .maybeSingle();
 
-    if (dbError) throw dbError;
-    if (!recordDetails) {
+    // Any DB error here (malformed id, no matching row, etc.) means there's no
+    // such record for this user — surface a clean 404 instead of a raw 500.
+    if (dbError || !recordDetails) {
       return NextResponse.json({ error: 'Record not found', code: '404' }, { status: 404 });
     }
 

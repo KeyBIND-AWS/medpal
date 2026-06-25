@@ -15,41 +15,36 @@ export default function RecordDetailPage() {
     const { t } = useTranslation();
 
     const [recordData, setRecordData] = useState<ScanResult | null>(null);
+    const [error, setError] = useState<string | null>(null);
 
-    // MOCK DATA FETCH (Swap this for GET /api/records/:id later)
     useEffect(() => {
-        const timer = setTimeout(() => {
-            setRecordData({
-                id: params.id as string,
-                readable: true,
-                summary: "This is a saved prescription for blood pressure and cholesterol management.",
-                created_at: new Date().toISOString(),
-                medications: [
-                    {
-                        drug_name: "Amlodipine",
-                        dosage: "5mg",
-                        frequency: "Once daily",
-                        purpose: "High blood pressure",
-                        instructions: "1 tablet every breakfast"
-                    },
-                    {
-                        drug_name: "Atorvastatin",
-                        dosage: "20mg",
-                        frequency: "Once daily",
-                        purpose: "Cholesterol",
-                        instructions: "1 tablet before bed"
-                    }
-                ]
-            });
-        }, 400);
+        const loadRecord = async () => {
+            setError(null);
+            try {
+                const response = await fetch(`/api/records/${params.id}`);
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.error || 'Failed to load record');
+                setRecordData(data as ScanResult);
+            } catch (err) {
+                setError(err instanceof Error ? err.message : 'Failed to load record');
+            }
+        };
 
-        return () => clearTimeout(timer);
+        loadRecord();
     }, [params.id]);
+
+    if (error) {
+        return (
+            <div className="w-full h-full min-h-[50vh] flex items-center justify-center px-6 text-center">
+                <p className="text-sm text-muted">{error}</p>
+            </div>
+        );
+    }
 
     if (!recordData) {
         return (
             <div className="w-full h-full min-h-[50vh] flex items-center justify-center">
-                <div className="w-8 h-8 rounded-full border-4 border-[#2B4BFF]/20 border-t-[#2B4BFF] animate-spin" />
+                <div className="w-8 h-8 rounded-full border-4 border-primary/20 border-t-primary animate-spin" />
             </div>
         );
     }
@@ -60,14 +55,14 @@ export default function RecordDetailPage() {
             {/* Back Button for internal navigation */}
             <button
                 onClick={() => router.back()}
-                className="flex items-center gap-1 text-sm font-bold text-slate-500 hover:text-slate-900 transition-colors self-start mb-2"
+                className="flex items-center gap-1 text-sm font-bold text-muted hover:text-ink transition-colors self-start mb-2"
             >
                 <CaretLeftIcon className="w-4 h-4" weight="bold" />
                 Back to Records
             </button>
 
             {/* 1. Dynamic Summary */}
-            <p className="text-sm text-slate-600 font-medium px-2">
+            <p className="text-sm text-muted font-medium px-2">
                 {recordData.summary}
             </p>
 
