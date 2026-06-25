@@ -4,7 +4,9 @@ import React, { useState } from 'react';
 import { useTranslation } from '@/contexts/LanguageContext';
 import { ReminderCard } from '@/components/ui/ReminderCard';
 import { EmptyState } from '@/components/ui/EmptyState';
-import { SunIcon, CloudSunIcon, MoonIcon } from '@phosphor-icons/react';
+import { SunIcon, CloudSunIcon, MoonIcon, Plus as PlusIcon } from '@phosphor-icons/react';
+import { AddReminderModal } from '@/components/ui/AddReminderModal';
+import { Button } from '@/components/ui/Button';
 
 type Reminder = {
     id: string;
@@ -24,12 +26,52 @@ const INITIAL_REMINDERS: Reminder[] = [
     { id: '4', drugName: 'Atorvastatin', dosage: '20mg', time: '8:00 PM', period: 'evening', instruction: 'Before bed', isActive: true },
 ];
 
+// Helper to format 24h string time (e.g. "08:00") into 12h string time (e.g. "8:00 AM")
+function formatTimeTo12Hour(time24: string): string {
+    if (!time24) return '';
+    const [hourStr, minuteStr] = time24.split(':');
+    const hour = parseInt(hourStr, 10);
+    const minute = parseInt(minuteStr, 10);
+    const ampm = hour >= 12 ? 'PM' : 'AM';
+    const hour12 = hour % 12 === 0 ? 12 : hour % 12;
+    const formattedMinute = minute.toString().padStart(2, '0');
+    return `${hour12}:${formattedMinute} ${ampm}`;
+}
+
+// Helper to categorize time into period
+function getPeriodFromTime(time24: string): 'morning' | 'afternoon' | 'evening' {
+    const [hourStr] = time24.split(':');
+    const hour = parseInt(hourStr, 10);
+    if (hour >= 5 && hour < 12) {
+        return 'morning';
+    } else if (hour >= 12 && hour < 17) {
+        return 'afternoon';
+    } else {
+        return 'evening';
+    }
+}
+
 export default function RemindersPage() {
     const { t } = useTranslation();
     const [reminders, setReminders] = useState<Reminder[]>(INITIAL_REMINDERS);
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
     const handleToggle = (id: string, newState: boolean) => {
         setReminders(prev => prev.map(r => r.id === id ? { ...r, isActive: newState } : r));
+    };
+
+    const handleAddReminder = (drugName: string, dosage: string, instruction: string, times: string[]) => {
+        const newReminders: Reminder[] = times.map(time24 => ({
+            id: Math.random().toString(36).substr(2, 9),
+            drugName,
+            dosage: dosage || '1 tablet',
+            time: formatTimeTo12Hour(time24),
+            period: getPeriodFromTime(time24),
+            instruction: instruction || 'As directed',
+            isActive: true
+        }));
+
+        setReminders(prev => [...prev, ...newReminders]);
     };
 
     const morning = reminders.filter(r => r.period === 'morning');
@@ -38,10 +80,17 @@ export default function RemindersPage() {
 
     if (reminders.length === 0) {
         return (
-            <div className="w-full h-full flex items-center justify-center">
+            <div className="w-full h-full flex flex-col p-4 md:p-6 justify-center">
                 <EmptyState
                     title={t.remindersPage.emptyTitle}
                     description={t.remindersPage.emptyDesc}
+                    actionLabel={t.remindersPage.addReminderButton}
+                    onAction={() => setIsModalOpen(true)}
+                />
+                <AddReminderModal
+                    isOpen={isModalOpen}
+                    onClose={() => setIsModalOpen(false)}
+                    onSave={handleAddReminder}
                 />
             </div>
         );
@@ -73,11 +122,22 @@ export default function RemindersPage() {
     };
 
     return (
-        <div className="w-full flex flex-col p-4 md:p-6 gap-8 pb-24">
+        <div className="w-full flex flex-col p-4 md:p-6 gap-8 pb-24 relative">
 
-            <button onClick={handleTestNotification} className="px-4 py-2 border border-black rounded hover:bg-black hover:text-white transition-colors duration-200">
-                [DEV] Notification Test
-            </button>
+            <div className="flex items-center justify-between gap-4">
+                <button onClick={handleTestNotification} className="text-xs text-slate-550 border border-slate-200 rounded-xl px-3 py-2 hover:bg-slate-100 transition-colors duration-200 cursor-pointer">
+                    [DEV] Notification Test
+                </button>
+                <Button
+                    variant="primary"
+                    size="sm"
+                    onClick={() => setIsModalOpen(true)}
+                    iconLeft={<PlusIcon className="w-4 h-4" weight="bold" />}
+                    className="h-10 rounded-xl shadow-xs"
+                >
+                    {t.remindersPage.addReminderButton}
+                </Button>
+            </div>
 
 
             {morning.length > 0 && (
@@ -115,6 +175,12 @@ export default function RemindersPage() {
                     ))}
                 </section>
             )}
+
+            <AddReminderModal
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                onSave={handleAddReminder}
+            />
 
         </div>
     );

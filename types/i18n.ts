@@ -48,6 +48,18 @@ export type Dictionary = {
         evening: string;
         emptyTitle: string;
         emptyDesc: string;
+        addReminderButton: string;
+        modalTitle: string;
+        medicineNameLabel: string;
+        medicineNamePlaceholder: string;
+        dosageLabel: string;
+        dosagePlaceholder: string;
+        instructionsLabel: string;
+        instructionsPlaceholder: string;
+        timesLabel: string;
+        addTimeButton: string;
+        saveButton: string;
+        cancelButton: string;
     };
 
     chatPage: {
