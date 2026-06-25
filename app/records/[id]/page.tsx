@@ -49,7 +49,7 @@ export default function RecordDetailPage() {
     if (!recordData) {
         return (
             <div className="w-full h-full min-h-[50vh] flex items-center justify-center">
-                <div className="w-8 h-8 rounded-full border-4 border-[#2B4BFF]/20 border-t-[#2B4BFF] animate-spin" />
+                <div className="w-8 h-8 rounded-full border-4 border-primary/20 border-t-primary animate-spin" />
             </div>
         );
     }
@@ -60,14 +60,14 @@ export default function RecordDetailPage() {
             {/* Back Button for internal navigation */}
             <button
                 onClick={() => router.back()}
-                className="flex items-center gap-1 text-sm font-bold text-slate-500 hover:text-slate-900 transition-colors self-start mb-2"
+                className="flex items-center gap-1 text-sm font-bold text-muted hover:text-ink transition-colors self-start mb-2"
             >
                 <CaretLeftIcon className="w-4 h-4" weight="bold" />
                 Back to Records
             </button>
 
             {/* 1. Dynamic Summary */}
-            <p className="text-sm text-slate-600 font-medium px-2">
+            <p className="text-sm text-muted font-medium px-2">
                 {recordData.summary}
             </p>
 

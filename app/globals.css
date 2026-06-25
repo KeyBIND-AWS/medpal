@@ -1,1 +1,22 @@
 @import "tailwindcss";
+
+@theme {
+    --font-sans: var(--font-sans), system-ui, sans-serif;
+
+    --color-primary: #2B4BFF;
+    --color-primary-hover: #253ee0;
+    --color-danger: #E74C3C;
+    --color-danger-hover: #d64030;
+
+    --color-canvas: #EFEFEF;
+    --color-cream: #F7F7F5;
+
+    --color-ink: #1A1A2E;
+    --color-muted: #9AA0A6;
+
+    --color-disclaimer: #FFFBEA;
+    --color-disclaimer-accent: #F2A488;
+    --color-disclaimer-ink: #8a8460;
+
+    --color-tint: #EAEEFF;
+}

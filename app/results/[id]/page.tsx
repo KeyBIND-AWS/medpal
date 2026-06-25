@@ -60,7 +60,7 @@ export default function ResultsPage() {
     if (!resultData) {
         return (
             <div className="w-full h-[calc(100vh-8rem)] flex items-center justify-center">
-                <div className="w-8 h-8 rounded-full border-4 border-[#2B4BFF]/20 border-t-[#2B4BFF] animate-spin" />
+                <div className="w-8 h-8 rounded-full border-4 border-primary/20 border-t-primary animate-spin" />
             </div>
         );
     }
@@ -69,7 +69,7 @@ export default function ResultsPage() {
         <div className="w-full max-w-[480px] mx-auto min-h-[calc(100vh-8rem)] flex flex-col p-6 gap-6 animate-in fade-in duration-300">
 
             {/* 1. Dynamic Summary (From AI) */}
-            <p className="text-sm text-slate-600 font-medium px-2">
+            <p className="text-sm text-muted font-medium px-2">
                 {resultData.summary}
             </p>
 

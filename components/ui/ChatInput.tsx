@@ -31,12 +31,12 @@ export function ChatInput({ placeholder, onSend, disabled }: ChatInputProps) {
                 onChange={(e) => setText(e.target.value)}
                 placeholder={placeholder}
                 disabled={disabled}
-                className="flex-1 bg-transparent px-4 py-2 text-[15px] outline-none text-slate-900 placeholder:text-slate-400 disabled:opacity-50"
+                className="flex-1 bg-transparent px-4 py-2 text-[15px] outline-none text-ink placeholder:text-muted disabled:opacity-50"
             />
             <button
                 type="submit"
                 disabled={!text.trim() || disabled}
-                className="w-10 h-10 rounded-full bg-[#2B4BFF] text-white flex items-center justify-center shrink-0 disabled:bg-slate-200 disabled:text-slate-400 transition-colors"
+                className="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center shrink-0 disabled:bg-slate-200 disabled:text-muted transition-colors"
             >
                 <PaperPlaneRightIcon className="w-5 h-5" weight="fill" />
             </button>

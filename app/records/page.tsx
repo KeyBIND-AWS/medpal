@@ -32,10 +32,10 @@ export default function RecordsPage() {
                         <button
                             key={f}
                             onClick={() => setFilter(f)}
-                            className={`flex-1 py-2 rounded-lg font-poppins font-semibold text-[11px] uppercase tracking-wider transition-all ${
+                            className={`flex-1 py-2 rounded-lg font-sans font-semibold text-[11px] uppercase tracking-wider transition-all ${
                                 filter === f
-                                    ? 'bg-white text-[#2B4BFF] shadow-sm'
-                                    : 'text-slate-500 hover:text-slate-800'
+                                    ? 'bg-white text-primary shadow-sm'
+                                    : 'text-muted hover:text-ink'
                             }`}
                         >
                             {f === 'all' ? t.recordsList.all : f === 'prescription' ? t.recordsList.prescriptions : t.recordsList.labResults}
@@ -56,7 +56,7 @@ export default function RecordsPage() {
                     />
                 ) : filteredRecords.length === 0 ? (
                     // In case they filter to 'Labs' but only have 'Prescriptions'
-                    <div className="text-center py-12 text-sm text-slate-500">
+                    <div className="text-center py-12 text-sm text-muted">
                         No records found for this category.
                     </div>
                 ) : (
