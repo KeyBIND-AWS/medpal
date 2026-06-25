@@ -59,6 +59,7 @@ export default function RemindersPage() {
     const { t } = useTranslation();
     const [reminders, setReminders] = useState<Reminder[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
     useEffect(() => {
         const loadReminders = async () => {
