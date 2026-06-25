@@ -54,6 +54,7 @@ export type Dictionary = {
         medicineNamePlaceholder: string;
         dosageLabel: string;
         dosagePlaceholder: string;
+        unitLabel: string;
         instructionsLabel: string;
         instructionsPlaceholder: string;
         timesLabel: string;

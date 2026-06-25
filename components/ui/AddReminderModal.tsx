@@ -11,10 +11,17 @@ interface AddReminderModalProps {
     onSave: (drugName: string, dosage: string, instruction: string, times: string[]) => void;
 }
 
+const DOSAGE_UNITS = [
+    "mg", "mcg/µg", "g", "kg", "mL", "L", "gtt", "tsp", "tbsp", "fl oz", "cc",
+    "mg/mL", "%", "mEq/mL", "IU", "U", "mEq", "mmol", "tab", "cap", "supp",
+    "patch", "puff", "spray", "mg/hr", "mcg/min", "mg/kg/min", "mL/hr", "gtt/min", "mg/cm²"
+];
+
 export function AddReminderModal({ isOpen, onClose, onSave }: AddReminderModalProps) {
     const { t } = useTranslation();
     const [drugName, setDrugName] = useState('');
-    const [dosage, setDosage] = useState('');
+    const [dosageValue, setDosageValue] = useState('');
+    const [dosageUnit, setDosageUnit] = useState('mg');
     const [instruction, setInstruction] = useState('');
     const [times, setTimes] = useState<string[]>(['08:00']); // Default to 8:00 AM
 
@@ -111,11 +118,13 @@ export function AddReminderModal({ isOpen, onClose, onSave }: AddReminderModalPr
         const validTimes = times.filter(t => t.trim() !== '');
         if (!drugName.trim() || validTimes.length === 0) return;
 
-        onSave(drugName, dosage, instruction, validTimes);
+        const combinedDosage = dosageValue.trim() ? `${dosageValue.trim()} ${dosageUnit}` : '';
+        onSave(drugName, combinedDosage, instruction, validTimes);
 
         // Reset state
         setDrugName('');
-        setDosage('');
+        setDosageValue('');
+        setDosageUnit('mg');
         setInstruction('');
         setTimes(['08:00']);
         onClose();
@@ -169,19 +178,38 @@ export function AddReminderModal({ isOpen, onClose, onSave }: AddReminderModalPr
                         />
                     </div>
 
-                    {/* Dosage */}
-                    <div className="flex flex-col gap-1.5">
-                        <label htmlFor="modalDosage" className="text-xs font-bold text-slate-700">
-                            {t.remindersPage.dosageLabel}
-                        </label>
-                        <input
-                            type="text"
-                            id="modalDosage"
-                            value={dosage}
-                            onChange={(e) => setDosage(e.target.value)}
-                            placeholder={t.remindersPage.dosagePlaceholder}
-                            className="w-full h-11 px-4 rounded-xl border border-slate-200 focus:border-[#2B4BFF] focus:ring-2 focus:ring-[#2B4BFF]/10 text-slate-900 placeholder-slate-400 text-sm outline-none transition-all duration-200"
-                        />
+                    {/* Dosage Value & Unit */}
+                    <div className="grid grid-cols-2 gap-3">
+                        <div className="flex flex-col gap-1.5">
+                            <label htmlFor="modalDosageValue" className="text-xs font-bold text-slate-700">
+                                {t.remindersPage.dosageLabel}
+                            </label>
+                            <input
+                                type="text"
+                                id="modalDosageValue"
+                                value={dosageValue}
+                                onChange={(e) => setDosageValue(e.target.value)}
+                                placeholder={t.remindersPage.dosagePlaceholder}
+                                className="w-full h-11 px-4 rounded-xl border border-slate-200 focus:border-[#2B4BFF] focus:ring-2 focus:ring-[#2B4BFF]/10 text-slate-900 placeholder-slate-400 text-sm outline-none transition-all duration-200"
+                            />
+                        </div>
+                        <div className="flex flex-col gap-1.5">
+                            <label htmlFor="modalDosageUnit" className="text-xs font-bold text-slate-700">
+                                {t.remindersPage.unitLabel}
+                            </label>
+                            <select
+                                id="modalDosageUnit"
+                                value={dosageUnit}
+                                onChange={(e) => setDosageUnit(e.target.value)}
+                                className="w-full h-11 px-3 rounded-xl border border-slate-200 focus:border-[#2B4BFF] focus:ring-2 focus:ring-[#2B4BFF]/10 bg-white text-slate-900 text-sm outline-none transition-all duration-200 cursor-pointer"
+                            >
+                                {DOSAGE_UNITS.map(unit => (
+                                    <option key={unit} value={unit}>
+                                        {unit}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
                     </div>
 
                     {/* Instructions */}
