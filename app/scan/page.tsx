@@ -34,9 +34,9 @@ export default function ScanPage() {
         }),
       });
 
-      if (!response.ok) throw new Error('API Route pending or failed');
-
       const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'API Route pending or failed');
+
       router.push(`/results/${data.scan_id || 'demo-123'}`);
     } catch (err) {
       console.warn('Backend API /api/scan unavailable. Bypassing to UI demo view:', err);

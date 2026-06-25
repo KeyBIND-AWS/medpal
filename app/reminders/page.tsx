@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useTranslation } from '@/contexts/LanguageContext';
 import { ReminderCard } from '@/components/ui/ReminderCard';
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -16,25 +16,79 @@ type Reminder = {
     isActive: boolean;
 };
 
-// Initial Mock Data
-const INITIAL_REMINDERS: Reminder[] = [
-    { id: '1', drugName: 'Amlodipine', dosage: '5mg', time: '8:00 AM', period: 'morning', instruction: 'After breakfast', isActive: true },
-    { id: '2', drugName: 'Metformin', dosage: '500mg', time: '8:00 AM', period: 'morning', instruction: 'With breakfast', isActive: true },
-    { id: '3', drugName: 'Metformin', dosage: '500mg', time: '1:00 PM', period: 'afternoon', instruction: 'With lunch', isActive: false },
-    { id: '4', drugName: 'Atorvastatin', dosage: '20mg', time: '8:00 PM', period: 'evening', instruction: 'Before bed', isActive: true },
-];
+function derivePeriod(time: string): 'morning' | 'afternoon' | 'evening' {
+    const match = time.match(/(\d{1,2}):(\d{2})(?::\d{2})?\s*(AM|PM)?/i);
+    if (!match) return 'morning';
+    let hour = parseInt(match[1], 10);
+    const meridiem = match[3]?.toUpperCase();
+    if (meridiem === 'PM' && hour !== 12) hour += 12;
+    if (meridiem === 'AM' && hour === 12) hour = 0;
+    if (hour < 12) return 'morning';
+    if (hour < 17) return 'afternoon';
+    return 'evening';
+}
 
 export default function RemindersPage() {
     const { t } = useTranslation();
-    const [reminders, setReminders] = useState<Reminder[]>(INITIAL_REMINDERS);
+    const [reminders, setReminders] = useState<Reminder[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
 
-    const handleToggle = (id: string, newState: boolean) => {
+    useEffect(() => {
+        const loadReminders = async () => {
+            setIsLoading(true);
+            try {
+                const response = await fetch('/api/reminders');
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.error || 'Failed to load reminders');
+
+                const mapped: Reminder[] = data.map((r: any) => ({
+                    id: r.id,
+                    drugName: r.medication?.drug_name ?? 'Unknown medication',
+                    dosage: r.medication?.dosage ?? '',
+                    time: r.time,
+                    period: derivePeriod(r.time),
+                    instruction: r.label,
+                    isActive: r.is_active,
+                }));
+                setReminders(mapped);
+            } catch (err) {
+                console.error('Failed to load reminders:', err);
+                setReminders([]);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        loadReminders();
+    }, []);
+
+    const handleToggle = async (id: string, newState: boolean) => {
         setReminders(prev => prev.map(r => r.id === id ? { ...r, isActive: newState } : r));
+
+        try {
+            const response = await fetch(`/api/reminders/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ is_active: newState }),
+            });
+            if (!response.ok) throw new Error('Failed to update reminder');
+        } catch (err) {
+            console.error('Failed to persist reminder toggle:', err);
+            setReminders(prev => prev.map(r => r.id === id ? { ...r, isActive: !newState } : r));
+        }
     };
 
     const morning = reminders.filter(r => r.period === 'morning');
     const afternoon = reminders.filter(r => r.period === 'afternoon');
     const evening = reminders.filter(r => r.period === 'evening');
+
+    if (isLoading) {
+        return (
+            <div className="w-full h-full flex items-center justify-center">
+                <div className="w-8 h-8 rounded-full border-4 border-primary/20 border-t-primary animate-spin" />
+            </div>
+        );
+    }
 
     if (reminders.length === 0) {
         return (
