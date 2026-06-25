@@ -1,47 +1,40 @@
-// MedPal service worker
-// Day 3 TODO (Kaiyou): add push/notification handlers here for medication reminders.
+// MedPal Unified Service Worker (Next.js Caching + Web Push Engine)
 
 const CACHE_VERSION = 'v3';
 const CACHE_NAME = `medpal-cache-${CACHE_VERSION}`;
-
-// Only the app shell root — used as the offline fallback for all page navigations.
-// We intentionally do NOT pre-cache other page routes: Next.js pages are
-// server-rendered on Vercel, so their HTML changes on every deploy. Caching
-// stale page HTML would cause blank screens after a redeployment.
 const PRECACHE_URLS = ['/'];
 
+// ============================================================================
+// LIFECYCLE: INSTALL & ACTIVATE (Singular, Unified Listeners)
+// ============================================================================
 self.addEventListener('install', (event) => {
+    self.skipWaiting(); // Take over immediately
     event.waitUntil(
-        caches
-            .open(CACHE_NAME)
-            .then((cache) => cache.addAll(PRECACHE_URLS))
-            .then(() => self.skipWaiting())
+        caches.open(CACHE_NAME).then((cache) => cache.addAll(PRECACHE_URLS))
     );
 });
 
 self.addEventListener('activate', (event) => {
     event.waitUntil(
-        caches
-            .keys()
+        caches.keys()
             .then((names) =>
                 Promise.all(
                     names.filter((n) => n !== CACHE_NAME).map((n) => caches.delete(n))
                 )
             )
-            .then(() => self.clients.claim())
+            .then(() => self.clients.claim()) // Instantly claim all open browser tabs
     );
 });
 
+// ============================================================================
+// NETWORK: NEXT.JS STATIC ASSET CACHING
+// ============================================================================
 self.addEventListener('fetch', (event) => {
     const { request } = event;
-
     if (request.method !== 'GET') return;
 
     const url = new URL(request.url);
 
-    // /_next/static/ assets: cache-first.
-    // Next.js content-hashes every file under this path, so a cached copy
-    // is always valid for the lifetime of that build.
     if (url.pathname.startsWith('/_next/static/')) {
         event.respondWith(
             caches.match(request).then(
@@ -57,13 +50,72 @@ self.addEventListener('fetch', (event) => {
         return;
     }
 
-    // Page navigations: network-first.
-    // Always fetch fresh HTML from Vercel so we don't serve stale server-rendered
-    // output after a deployment. Only fall back to cached app shell when offline.
     if (request.mode === 'navigate') {
         event.respondWith(fetch(request).catch(() => caches.match('/')));
         return;
     }
+});
 
-    // Everything else (API calls, Supabase, etc.): let the browser handle normally.
+// ============================================================================
+// ENGINE 1: STANDARD WEB PUSH (Remote Server Broadcasts)
+// ============================================================================
+self.addEventListener('push', (event) => {
+    if (!event.data) return;
+
+    try {
+        const data = event.data.json();
+        const options = {
+            body: data.body || 'Oras na para inumin ang iyong gamot!',
+            icon: '/icons/icon-192x192.png',
+            badge: '/icons/icon-192x192.png',
+            vibrate: [200, 100, 200, 100, 200],
+            data: { url: data.url || '/reminders' },
+        };
+
+        event.waitUntil(
+            self.registration.showNotification(data.title || 'MedPal Reminder', options)
+        );
+    } catch (err) {
+        console.error('Failed to parse incoming push data:', err);
+    }
+});
+
+// ============================================================================
+// ENGINE 2: LOCAL CLIENT TRIGGER (Added event.waitUntil Lock)
+// ============================================================================
+self.addEventListener('message', (event) => {
+    if (event.data && event.data.type === 'TEST_LOCAL_PUSH') {
+        const { title, body, url } = event.data.payload;
+
+        // CRITICAL: event.waitUntil guarantees the OS finishes painting the notification banner!
+        event.waitUntil(
+            self.registration.showNotification(title || 'MedPal Paalala', {
+                body: body || 'Oras na para sa iyong Metformin (500mg).',
+                icon: '/icons/icon-192x192.png',
+                vibrate: [100, 50, 100],
+                data: { url: url || '/reminders' },
+            })
+        );
+    }
+});
+
+// ============================================================================
+// INTERACTION: HANDLE NOTIFICATION TAPS
+// ============================================================================
+self.addEventListener('notificationclick', (event) => {
+    event.notification.close();
+    const targetUrl = event.notification.data?.url || '/reminders';
+
+    event.waitUntil(
+        clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
+            for (let client of windowClients) {
+                if (client.url && 'focus' in client) {
+                    client.focus();
+                    if ('navigate' in client) client.navigate(targetUrl);
+                    return;
+                }
+            }
+            if (clients.openWindow) return clients.openWindow(targetUrl);
+        })
+    );
 });

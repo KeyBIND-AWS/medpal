@@ -6,7 +6,8 @@ export const dictionaries: Record<Language, Dictionary> = {
             scan: 'Scan',
             records: 'Records',
             reminders: 'Reminders',
-            settings: 'Settings'
+            chat: 'Chat',
+            settings: 'Settings',
         },
         disclaimer: {
             text: 'Disclaimer: MedPal explains your prescription in plain language. It does not replace your doctor — always follow their instructions.',
@@ -39,12 +40,27 @@ export const dictionaries: Record<Language, Dictionary> = {
             prescriptions: 'Prescriptions',
             labResults: 'Lab Results'
         },
+        remindersPage: {
+            title: 'Reminders',
+            morning: 'Morning',
+            afternoon: 'Afternoon',
+            evening: 'Evening',
+            emptyTitle: 'No Reminders Yet',
+            emptyDesc: 'Your scheduled medications will appear here.'
+        },
+        chatPage: {
+            title: 'Chat',
+            greeting: 'Hello! Just ask if you want to know anything about your medicine. 😀',
+            placeholder: 'Ask a question...',
+            emptyDisclaimer: 'Medical AI can make mistakes. Always consult your doctor.'
+        },
     },
     filipino: {
         nav: {
             scan: 'Scan',
             records: 'Tala',
             reminders: 'Paalala',
+            chat: 'Chat',
             settings: 'Settings'
         },
         disclaimer: {
@@ -78,12 +94,27 @@ export const dictionaries: Record<Language, Dictionary> = {
             prescriptions: 'Reseta',
             labResults: 'Resulta sa Lab'
         },
+        remindersPage: {
+            title: 'Mga Paalala',
+            morning: 'Umaga',
+            afternoon: 'Hapon',
+            evening: 'Gabi',
+            emptyTitle: 'Wala pang Paalala',
+            emptyDesc: 'Dito makikita ang mga nakatakdang inumin na gamot.'
+        },
+        chatPage: {
+            title: 'Chat',
+            greeting: 'Kumusta! Magtanong lang kung ano ang gusto mong malaman tungkol sa iyong gamot. 😀',
+            placeholder: 'Mag-type ng tanong...',
+            emptyDisclaimer: 'Maaaring magkamali ang AI. Kumonsulta palagi sa doktor.'
+        },
     },
     bisaya: {
         nav: {
             scan: 'Scan',
             records: 'Rekord',
             reminders: 'Pahinumdom',
+            chat: 'Chat',
             settings: 'Settings'
         },
         disclaimer: {
@@ -116,6 +147,20 @@ export const dictionaries: Record<Language, Dictionary> = {
             all: 'Tanan',
             prescriptions: 'Reseta',
             labResults: 'Resulta sa Lab'
+        },
+        remindersPage: {
+            title: 'Mga Pahinumdom',
+            morning: 'Buntag',
+            afternoon: 'Hapon',
+            evening: 'Gabii',
+            emptyTitle: 'Wala pay Pahinumdom',
+            emptyDesc: 'Dinhi makita ang mga gitakdang imnon nga tambal.'
+        },
+        chatPage: {
+            title: 'Chat',
+            greeting: 'Kumusta! Pangutana lang kung unsa imong gusto mahibal-an bahin sa imong tambal. 😀',
+            placeholder: 'Pag-type og pangutana...',
+            emptyDisclaimer: 'Basin masayop ang AI. Pagkonsulta kanunay sa doktor.'
         },
     },
 };

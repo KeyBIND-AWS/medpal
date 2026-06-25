@@ -52,8 +52,8 @@ export function Sidebar() {
                                 className="w-6 h-6 shrink-0"
                             />
                             <span className="text-[15px] tracking-wide">
-                {t.nav[item.nameKey]}
-              </span>
+                                {t.nav[item.nameKey]}
+                            </span>
                         </Link>
                     );
                 })}
