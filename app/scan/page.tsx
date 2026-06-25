@@ -54,10 +54,10 @@ export default function ScanPage() {
           <button
               onClick={() => setScanType('prescription')}
               disabled={isAnalyzing}
-              className={`flex-1 py-3 rounded-xl font-poppins font-bold text-sm transition-all ${
+              className={`flex-1 py-3 rounded-xl font-sans font-bold text-sm transition-all ${
                   scanType === 'prescription'
-                      ? 'bg-[#2B4BFF] text-white shadow-md'
-                      : 'text-slate-600 hover:text-slate-900'
+                      ? 'bg-primary text-white shadow-md'
+                      : 'text-muted hover:text-ink'
               }`}
           >
             {t.scanner.prescription}
@@ -66,10 +66,10 @@ export default function ScanPage() {
           <button
               onClick={() => setScanType('lab_result')}
               disabled={isAnalyzing}
-              className={`flex-1 py-3 rounded-xl font-poppins font-bold text-sm transition-all ${
+              className={`flex-1 py-3 rounded-xl font-sans font-bold text-sm transition-all ${
                   scanType === 'lab_result'
-                      ? 'bg-[#2B4BFF] text-white shadow-md'
-                      : 'text-slate-600 hover:text-slate-900'
+                      ? 'bg-primary text-white shadow-md'
+                      : 'text-muted hover:text-ink'
               }`}
           >
             {t.scanner.labResult}
@@ -79,14 +79,14 @@ export default function ScanPage() {
         <div className="w-full flex-1 flex flex-col items-center justify-center min-h-0">
           {isAnalyzing ? (
               // Day 1 Kaiyou Deliverable: Bisaya AI Loading Screen
-              <Card className="w-full aspect-[3/4] max-h-[460px] flex flex-col items-center justify-center text-center p-8 bg-gradient-to-b from-white to-slate-50 border-2 border-[#2B4BFF]/20 animate-pulse">
-                <div className="w-16 h-16 rounded-2xl bg-[#2B4BFF]/10 text-[#2B4BFF] flex items-center justify-center mb-6 animate-bounce">
+              <Card className="w-full aspect-[3/4] max-h-[460px] flex flex-col items-center justify-center text-center p-8 bg-gradient-to-b from-white to-slate-50 border-2 border-primary/20 animate-pulse">
+                <div className="w-16 h-16 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mb-6 animate-bounce">
                   <SparkleIcon className="w-8 h-8" weight="fill" />
                 </div>
-                <h3 className="font-poppins font-bold text-lg text-slate-800 mb-2">
+                <h3 className="font-sans font-bold text-lg text-ink mb-2">
                   {t.scanner.analyzing}
                 </h3>
-                <p className="text-xs text-slate-400 max-w-[200px]">
+                <p className="text-xs text-muted max-w-[200px]">
                   AWS Bedrock Claude 3.5 is translating medical jargon into plain language...
                 </p>
               </Card>
@@ -107,7 +107,7 @@ export default function ScanPage() {
 
                 <button
                     onClick={() => setCapturedImage(null)}
-                    className="inline-flex items-center gap-2 text-sm font-bold text-slate-500 hover:text-rose-600 transition-colors py-1 cursor-pointer shrink-0"
+                    className="inline-flex items-center gap-2 text-sm font-bold text-muted hover:text-rose-600 transition-colors py-1 cursor-pointer shrink-0"
                 >
                   <ArrowsClockwiseIcon className="w-4 h-4" />
                   {t.scanner.retake}

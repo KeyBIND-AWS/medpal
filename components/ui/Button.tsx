@@ -19,13 +19,13 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(({
                                                                             disabled,
                                                                             ...props
                                                                         }, ref) => {
-    const baseStyles = "font-poppins font-bold flex items-center justify-center gap-2 transition-all active:scale-[0.98] select-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100";
+    const baseStyles = "font-sans font-bold flex items-center justify-center gap-2 transition-all active:scale-[0.98] select-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100";
 
     const variants = {
-        primary: "bg-[#2B4BFF] text-white hover:bg-[#253ee0] shadow-md shadow-[#2B4BFF]/20",
-        secondary: "bg-white text-slate-800 hover:bg-slate-50 border border-slate-200 shadow-xs",
-        danger: "bg-[#E74C3C] text-white hover:bg-[#d64030] shadow-md shadow-[#E74C3C]/20",
-        outline: "bg-transparent text-[#2B4BFF] border-2 border-[#2B4BFF] hover:bg-[#2B4BFF]/5"
+        primary: "bg-primary text-white hover:bg-primary-hover shadow-md shadow-primary/20",
+        secondary: "bg-white text-ink hover:bg-slate-50 border border-slate-200 shadow-xs",
+        danger: "bg-danger text-white hover:bg-danger-hover shadow-md shadow-danger/20",
+        outline: "bg-transparent text-primary border-2 border-primary hover:bg-primary/5"
     };
 
     const sizes = {

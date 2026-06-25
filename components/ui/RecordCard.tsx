@@ -28,17 +28,17 @@ export function RecordCard({ id, type, title, date }: RecordCardProps) {
                 <Badge variant="primary">{typeLabel}</Badge>
 
                 <div className="flex flex-col">
-                    <h3 className="font-poppins font-bold text-slate-900 text-[15px]">
+                    <h3 className="font-sans font-bold text-ink text-[15px]">
                         {title}
                     </h3>
-                    <span className="text-xs text-slate-400 font-medium mt-0.5">
+                    <span className="text-xs text-muted font-medium mt-0.5">
                         {date}
                     </span>
                 </div>
             </div>
 
             <CaretRightIcon
-                className="w-5 h-5 text-slate-400 group-hover:text-[#2B4BFF] transition-colors"
+                className="w-5 h-5 text-muted group-hover:text-primary transition-colors"
                 weight="bold"
             />
         </Card>
