@@ -17,11 +17,16 @@ export async function PUT(request: NextRequest, context: RouteContext) {
       return NextResponse.json({ error: 'Unauthorized', code: '401' }, { status: 401 });
     }
 
-    const { time, is_active } = await request.json();
-    
+    const { time, label, is_active } = await request.json();
+
     const updateData: any = {};
     if (time !== undefined) updateData.time = time;
+    if (label !== undefined) updateData.label = label;
     if (is_active !== undefined) updateData.is_active = is_active;
+
+    if (Object.keys(updateData).length === 0) {
+      return NextResponse.json({ error: 'No fields to update.', code: '400' }, { status: 400 });
+    }
 
     const { data: updatedReminder, error: dbError } = await supabase
       .from('reminders')

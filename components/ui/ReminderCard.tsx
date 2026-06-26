@@ -3,7 +3,7 @@
 import React, { useRef, useState } from 'react';
 import { Card } from './Card';
 import { Toggle } from './Toggle';
-import { ClockIcon, PillIcon, TrashIcon } from '@phosphor-icons/react';
+import { ClockIcon, PillIcon, TrashIcon, PencilSimpleIcon } from '@phosphor-icons/react';
 
 interface ReminderCardProps {
     drugName: string;
@@ -12,12 +12,13 @@ interface ReminderCardProps {
     instruction: string;
     isActive: boolean;
     onToggle: (newState: boolean) => void;
+    onEdit?: () => void;
     onDelete?: () => void;
 }
 
 const THRESHOLD = 80;
 
-export function ReminderCard({ drugName, dosage, time, instruction, isActive, onToggle, onDelete }: ReminderCardProps) {
+export function ReminderCard({ drugName, dosage, time, instruction, isActive, onToggle, onEdit, onDelete }: ReminderCardProps) {
     const touchStartX = useRef(0);
     const [translateX, setTranslateX] = useState(0);
     const [isSwiping, setIsSwiping] = useState(false);
@@ -67,8 +68,8 @@ export function ReminderCard({ drugName, dosage, time, instruction, isActive, on
                 onTouchMove={handleTouchMove}
                 onTouchEnd={handleTouchEnd}
             >
-                <Card className={`w-full flex items-center justify-between transition-all duration-300 ${!isActive ? 'opacity-60 grayscale-[0.5]' : ''}`}>
-                    <div className="flex flex-col gap-2">
+                <Card className={`w-full flex items-center justify-between gap-3 transition-all duration-300 ${!isActive ? 'opacity-60 grayscale-[0.5]' : ''}`}>
+                    <div className="flex flex-col gap-2 min-w-0">
 
                         {/* Time & Dosage Header */}
                         <div className="flex items-center gap-2">
@@ -81,21 +82,31 @@ export function ReminderCard({ drugName, dosage, time, instruction, isActive, on
                         </div>
 
                         {/* Drug Name & Instructions */}
-                        <div className="flex flex-col">
+                        <div className="flex flex-col min-w-0">
                             <div className="flex items-center gap-1.5 text-primary font-semibold text-[15px]">
-                                <PillIcon className="w-4 h-4" weight="fill" />
-                                {drugName}
+                                <PillIcon className="w-4 h-4 shrink-0" weight="fill" />
+                                <span className="truncate">{drugName}</span>
                             </div>
                             <div className="flex items-center gap-1.5 text-muted text-xs mt-1 font-medium">
-                                <ClockIcon className="w-3.5 h-3.5" />
-                                {instruction}
+                                <ClockIcon className="w-3.5 h-3.5 shrink-0" />
+                                <span className="truncate">{instruction}</span>
                             </div>
                         </div>
 
                     </div>
 
-                    {/* Interactive Toggle */}
-                    <div className="pl-4 border-l border-slate-100 py-2">
+                    {/* Edit + Toggle controls */}
+                    <div className="flex items-center gap-1 pl-3 border-l border-slate-100 py-2 shrink-0">
+                        {onEdit && (
+                            <button
+                                type="button"
+                                onClick={onEdit}
+                                aria-label="Edit reminder"
+                                className="p-2 rounded-lg text-slate-400 hover:text-primary hover:bg-slate-50 active:scale-90 transition-all"
+                            >
+                                <PencilSimpleIcon className="w-5 h-5" />
+                            </button>
+                        )}
                         <Toggle enabled={isActive} onChange={onToggle} />
                     </div>
                 </Card>
