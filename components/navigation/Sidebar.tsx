@@ -19,7 +19,7 @@ export function Sidebar() {
                     alt="MedPal Logo"
                     className="w-14 h-auto shrink-0 drop-shadow-sm"
                 />
-                <span className="font-poppins font-extrabold text-2xl tracking-tight text-slate-900">
+                <span className="font-sans font-extrabold text-2xl tracking-tight text-ink">
           MedPal
         </span>
             </div>
@@ -38,13 +38,13 @@ export function Sidebar() {
                             // FIXED: h-12 (48px), rounded-xl (12px), pl-4 (16px), gap-3 (13px)
                             className={`relative overflow-hidden flex items-center h-12 gap-3 pl-4 transition-all rounded-xl font-medium ${
                                 isActive
-                                    ? 'bg-[#EAEEFF] text-[#2B4BFF] font-bold'
-                                    : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'
+                                    ? 'bg-tint text-primary font-bold'
+                                    : 'text-muted hover:text-ink hover:bg-slate-50'
                             }`}
                         >
                             {isActive && (
                                 // FIXED: Width dialed down from 6px to Figma's 3.33px
-                                <div className="absolute left-0 top-0 bottom-0 w-[3.5px] bg-[#2B4BFF]" />
+                                <div className="absolute left-0 top-0 bottom-0 w-[3.5px] bg-primary" />
                             )}
 
                             <Icon

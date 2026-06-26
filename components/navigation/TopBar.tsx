@@ -21,7 +21,7 @@ export function TopBar() {
     const isSubPage = pathname.includes('/add') || pathname.includes('/results/') || pathname.split('/').length > 2;
 
     return (
-        <header className="w-full bg-[#2B4BFF] text-white px-6 py-5 rounded-b-3xl shadow-sm flex items-center justify-between">
+        <header className="w-full bg-primary text-white px-6 py-5 rounded-b-3xl shadow-sm flex items-center justify-between">
             <div className="flex items-center gap-3">
                 {isSubPage && (
                     <button
@@ -32,7 +32,7 @@ export function TopBar() {
                         <CaretLeftIcon className="w-6 h-6 weight-bold" />
                     </button>
                 )}
-                <h1 className="font-poppins font-extrabold text-2xl tracking-tight">
+                <h1 className="font-sans font-extrabold text-2xl tracking-tight">
                     {getPageTitle()}
                 </h1>
             </div>

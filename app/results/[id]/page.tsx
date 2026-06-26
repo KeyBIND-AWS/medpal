@@ -15,52 +15,40 @@ export default function ResultsPage() {
     const { t } = useTranslation();
 
     const [resultData, setResultData] = useState<ScanResult | null>(null);
-    const [isSaving, setIsSaving] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
-    // MOCK DATA FETCH (Swap this for Supabase fetch when Brian's API is ready)
     useEffect(() => {
-        // Simulating network delay
-        const timer = setTimeout(() => {
-            setResultData({
-                id: params.id as string,
-                readable: true,
-                summary: "Ang doktor nagreseta ug tambal para sa high blood ug diabetes.",
-                created_at: new Date().toISOString(),
-                medications: [
-                    {
-                        drug_name: "Amlodipine",
-                        dosage: "5mg",
-                        frequency: "Once daily",
-                        purpose: "High blood pressure",
-                        instructions: "1 tablet every breakfast, lunch, and dinner"
-                    },
-                    {
-                        drug_name: "Metformin",
-                        dosage: "500mg",
-                        frequency: "Once daily",
-                        purpose: "Blood sugar control",
-                        instructions: "1 tablet every breakfast, lunch, and dinner"
-                    }
-                ]
-            });
-        }, 600);
+        const loadResult = async () => {
+            setError(null);
+            try {
+                const response = await fetch(`/api/records/${params.id}`);
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.error || 'Failed to load result');
+                setResultData(data as ScanResult);
+            } catch (err) {
+                setError(err instanceof Error ? err.message : 'Failed to load result');
+            }
+        };
 
-        return () => clearTimeout(timer);
+        loadResult();
     }, [params.id]);
 
-    const handleSaveToRecords = async () => {
-        setIsSaving(true);
-        // TODO: POST /api/records
-        setTimeout(() => {
-            setIsSaving(false);
-            router.push('/records');
-        }, 1000);
+    const handleSaveToRecords = () => {
+        router.push('/records');
     };
+
+    if (error) {
+        return (
+            <div className="w-full h-[calc(100vh-8rem)] flex items-center justify-center px-6 text-center">
+                <p className="text-sm text-muted">{error}</p>
+            </div>
+        );
+    }
 
     if (!resultData) {
         return (
             <div className="w-full h-[calc(100vh-8rem)] flex items-center justify-center">
-                <div className="w-8 h-8 rounded-full border-4 border-[#2B4BFF]/20 border-t-[#2B4BFF] animate-spin" />
+                <div className="w-8 h-8 rounded-full border-4 border-primary/20 border-t-primary animate-spin" />
             </div>
         );
     }
@@ -69,7 +57,7 @@ export default function ResultsPage() {
         <div className="w-full max-w-[480px] mx-auto min-h-[calc(100vh-8rem)] flex flex-col p-6 gap-6 animate-in fade-in duration-300">
 
             {/* 1. Dynamic Summary (From AI) */}
-            <p className="text-sm text-slate-600 font-medium px-2">
+            <p className="text-sm text-muted font-medium px-2">
                 {resultData.summary}
             </p>
 
@@ -90,10 +78,9 @@ export default function ResultsPage() {
                     size="lg"
                     className="w-full"
                     onClick={handleSaveToRecords}
-                    isLoading={isSaving}
-                    iconLeft={!isSaving && <FloppyDiskIcon className="w-5 h-5" weight="fill" />}
+                    iconLeft={<FloppyDiskIcon className="w-5 h-5" weight="fill" />}
                 >
-                    {isSaving ? t.results.saving : t.results.saveToRecords}
+                    {t.results.saveToRecords}
                 </Button>
 
                 <Button
@@ -101,7 +88,6 @@ export default function ResultsPage() {
                     size="lg"
                     className="w-full"
                     onClick={() => router.push('/reminders')}
-                    disabled={isSaving}
                     iconLeft={<BellIcon className="w-5 h-5" weight="fill" />}
                 >
                     {t.results.setReminders}

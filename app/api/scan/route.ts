@@ -32,13 +32,14 @@ export async function POST(req: NextRequest) {
     const { data: storageData, error: storageError } = await supabase.storage
       .from('scans')
       .upload(fileName, imageBuffer, {
-        contentType: `image/${fileExtension}`,
+        contentType: 'image/jpeg',
         upsert: true
       });
 
     if (storageError) {
+      console.error('POST /api/scan storage upload failed:', storageError);
       return NextResponse.json(
-        { error: 'Cloud storage file upload infrastructure failure.', code: 'STORAGE_ERROR' },
+        { error: `Cloud storage file upload infrastructure failure: ${storageError.message}`, code: 'STORAGE_ERROR' },
         { status: 500 }
       );
     }
@@ -59,7 +60,13 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const aiPayload = JSON.parse(aiResponseString);
+    // Claude sometimes wraps JSON in markdown fences despite instructions not to
+    let cleanedResponse = aiResponseString.trim();
+    if (cleanedResponse.startsWith('```')) {
+      cleanedResponse = cleanedResponse.replace(/^```json\s*/i, '').replace(/```\s*$/, '').trim();
+    }
+
+    const aiPayload = JSON.parse(cleanedResponse);
 
     // 4. Handle Illegible Handwriting Fallback Path
     if (!aiPayload.readable) {
@@ -116,6 +123,7 @@ export async function POST(req: NextRequest) {
     });
 
   } catch (globalError: any) {
+    console.error('POST /api/scan failed:', globalError);
     return NextResponse.json(
       { error: globalError.message || 'Unexpected backend transaction failure.', code: '500' },
       { status: 500 }

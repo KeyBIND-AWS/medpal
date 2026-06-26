@@ -21,11 +21,11 @@ export function EmptyState({ title, description, actionLabel, onAction }: EmptyS
                 <div className="w-3 h-3 rounded-full bg-slate-300/50 ml-2" />
             </div>
 
-            <h3 className="font-poppins font-extrabold text-xl text-slate-800 mb-2 tracking-tight">
+            <h3 className="font-sans font-extrabold text-xl text-ink mb-2 tracking-tight">
                 {title}
             </h3>
 
-            <p className="text-sm text-slate-500 max-w-[240px] leading-relaxed mb-8">
+            <p className="text-sm text-muted max-w-[240px] leading-relaxed mb-8">
                 {description}
             </p>
 
