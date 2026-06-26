@@ -17,7 +17,7 @@ export default async function DashboardPage() {
   }
 
   return (
-    <div className="relative min-h-screen flex flex-col justify-between bg-canvas text-ink overflow-hidden font-sans">
+    <div className="relative min-h-screen flex flex-col justify-between bg-canvas text-ink overflow-y-auto font-sans">
       {/* Header */}
       <Header variant="dashboard" />
 
@@ -34,7 +34,7 @@ export default async function DashboardPage() {
         </div>
 
         {/* Dashboard Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 gap-6">
           {/* Card 1: Auth & User Profile */}
           <div className="p-6 rounded-2xl bg-white border border-slate-200 shadow-xs flex flex-col justify-between">
             <div>
