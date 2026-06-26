@@ -9,6 +9,8 @@ import { Button } from '@/components/ui/Button';
 import { SunIcon, CloudSunIcon, MoonIcon, PlusIcon, BellIcon, TrashIcon } from '@phosphor-icons/react';
 import { createClient } from '@/utils/supabase/client';
 
+const VAPID_PUBLIC_KEY = "BEl62Ohay1XZaBz5T94_7bSI5UrZf15M13mTu49KEY612q321_Example_Key_Value_Base64";
+
 type Reminder = {
     id: string;
     drugName: string;
@@ -17,6 +19,7 @@ type Reminder = {
     period: 'morning' | 'afternoon' | 'evening';
     instruction: string;
     isActive: boolean;
+    is_active?: boolean;
 };
 
 type MedicationOption = {
@@ -184,18 +187,29 @@ function RemindersInner() {
         }
     };
 
-    const handleToggle = async (id: string, newState: boolean) => {
-        setReminders(prev => prev.map(r => r.id === id ? { ...r, isActive: newState } : r));
+    const handleSynchronizeReminderUpdate = async (
+        targetReminderId: string, 
+        mutatedFields: { time?: string; is_active?: boolean }
+    ) => {
         try {
-            const response = await fetch(`/api/reminders/${id}`, {
+            const apiResponse = await fetch(`/api/reminders/${targetReminderId}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ is_active: newState }),
+                body: JSON.stringify(mutatedFields),
             });
-            if (!response.ok) throw new Error('Failed to update reminder');
-        } catch (err) {
-            console.error('Failed to persist reminder toggle:', err);
-            setReminders(prev => prev.map(r => r.id === id ? { ...r, isActive: !newState } : r));
+
+            if (!apiResponse.ok) {
+                const errorPayload = await apiResponse.json();
+                throw new Error(errorPayload.error || 'Database state rejected entry updating.');
+            }
+
+            setReminders((prevRemindersCollection) =>
+                prevRemindersCollection.map((reminderItem) =>
+                    reminderItem.id === targetReminderId ? { ...reminderItem, ...mutatedFields } : reminderItem
+                )
+            );
+        } catch (error) {
+            console.error('Error synchronizing scheduling state variations with Postgres:', error);
         }
     };
 
@@ -609,7 +623,7 @@ function RemindersInner() {
                         <h2 className="text-sm uppercase tracking-wider">{t.remindersPage.morning}</h2>
                     </div>
                     {morning.map(r => (
-                        <ReminderCard key={r.id} {...r} onToggle={(state) => handleToggle(r.id, state)} onDelete={() => handleDelete(r.id)} />
+                        <ReminderCard key={r.id} {...r} isActive={r.is_active !== undefined ? r.is_active : r.isActive} onToggle={(state) => handleSynchronizeReminderUpdate(r.id, { is_active: state })} onDelete={() => handleDelete(r.id)} />
                     ))}
                 </section>
             )}
@@ -621,7 +635,7 @@ function RemindersInner() {
                         <h2 className="text-sm uppercase tracking-wider">{t.remindersPage.afternoon}</h2>
                     </div>
                     {afternoon.map(r => (
-                        <ReminderCard key={r.id} {...r} onToggle={(state) => handleToggle(r.id, state)} onDelete={() => handleDelete(r.id)} />
+                        <ReminderCard key={r.id} {...r} isActive={r.is_active !== undefined ? r.is_active : r.isActive} onToggle={(state) => handleSynchronizeReminderUpdate(r.id, { is_active: state })} onDelete={() => handleDelete(r.id)} />
                     ))}
                 </section>
             )}
@@ -633,7 +647,7 @@ function RemindersInner() {
                         <h2 className="text-sm uppercase tracking-wider">{t.remindersPage.evening}</h2>
                     </div>
                     {evening.map(r => (
-                        <ReminderCard key={r.id} {...r} onToggle={(state) => handleToggle(r.id, state)} onDelete={() => handleDelete(r.id)} />
+                        <ReminderCard key={r.id} {...r} isActive={r.is_active !== undefined ? r.is_active : r.isActive} onToggle={(state) => handleSynchronizeReminderUpdate(r.id, { is_active: state })} onDelete={() => handleDelete(r.id)} />
                     ))}
                 </section>
             )}

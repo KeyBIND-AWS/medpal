@@ -142,11 +142,10 @@ export function CameraCapture({ onCapture }: CameraCaptureProps) {
     );
   }
 
-  // --- UI RENDER: VIEWFINDER MODE ---
   return (
-      <div className="w-full h-full flex flex-col items-center gap-4 animate-in fade-in zoom-in-95 duration-300">
+      <div className="flex-1 min-h-0 w-full flex flex-col items-center gap-4 animate-in fade-in zoom-in-95 duration-300">
 
-        <div className="relative w-full h-full max-h-[640px] rounded-3xl overflow-hidden bg-black shadow-xl">
+        <div className="flex-1 min-h-0 w-full relative rounded-3xl overflow-hidden bg-black shadow-xl">
           <video
               ref={videoRef}
               playsInline
@@ -174,7 +173,7 @@ export function CameraCapture({ onCapture }: CameraCaptureProps) {
           )}
 
           {/* Shutter Button Bar */}
-          <div className="absolute bottom-6 left-0 right-0 flex justify-center items-center gap-8 px-6 z-10">
+          <div className="absolute bottom-6 left-0 right-0 flex justify-center items-center gap-8 px-6 z-50">
             <button
                 onClick={() => fileInputRef.current?.click()}
                 className="w-12 h-12 rounded-full bg-black/50 text-white flex items-center justify-center border border-white/20 hover:bg-black/70 transition-colors"

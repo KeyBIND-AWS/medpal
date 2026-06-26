@@ -60,24 +60,28 @@ self.addEventListener('fetch', (event) => {
 // ENGINE 1: STANDARD WEB PUSH (Remote Server Broadcasts)
 // ============================================================================
 self.addEventListener('push', (event) => {
-    if (!event.data) return;
-
+  if (!event.data) return;
+  
+  const displayNotificationPromise = Promise.resolve().then(() => {
     try {
-        const data = event.data.json();
-        const options = {
-            body: data.body || 'Oras na para inumin ang iyong gamot!',
-            icon: '/icons/icon-192x192.png',
-            badge: '/icons/icon-192x192.png',
-            vibrate: [200, 100, 200, 100, 200],
-            data: { url: data.url || '/reminders' },
-        };
-
-        event.waitUntil(
-            self.registration.showNotification(data.title || 'MedPal Reminder', options)
-        );
-    } catch (err) {
-        console.error('Failed to parse incoming push data:', err);
+      const metadata = event.data.json();
+      return self.registration.showNotification(metadata.title || 'HatidDok', {
+        body: metadata.body || 'Adunay ka bag-ong pahibalo gikan sa imong medical companion.',
+        icon: '/icons/icon-192x192.png',
+        badge: '/icons/icon-72x72.png',
+        vibrate: [100, 50, 100],
+        data: { url: metadata.url || '/reminders' }
+      });
+    } catch {
+      return self.registration.showNotification('HatidDok', {
+        body: event.data.text(),
+        icon: '/icons/icon-192x192.png',
+        data: { url: '/reminders' }
+      });
     }
+  });
+
+  event.waitUntil(displayNotificationPromise);
 });
 
 // ============================================================================
@@ -103,19 +107,8 @@ self.addEventListener('message', (event) => {
 // INTERACTION: HANDLE NOTIFICATION TAPS
 // ============================================================================
 self.addEventListener('notificationclick', (event) => {
-    event.notification.close();
-    const targetUrl = event.notification.data?.url || '/reminders';
-
-    event.waitUntil(
-        clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
-            for (let client of windowClients) {
-                if (client.url && 'focus' in client) {
-                    client.focus();
-                    if ('navigate' in client) client.navigate(targetUrl);
-                    return;
-                }
-            }
-            if (clients.openWindow) return clients.openWindow(targetUrl);
-        })
-    );
+  event.notification.close();
+  event.waitUntil(
+    clients.openWindow(event.notification.data?.url || '/reminders')
+  );
 });

@@ -50,7 +50,7 @@ export default function ResultsPage() {
     }
 
     return (
-        <div className="w-full max-w-[480px] mx-auto min-h-[calc(100vh-8rem)] flex flex-col p-6 gap-6 animate-in fade-in duration-300 pb-52">
+        <div className="w-full max-w-[480px] mx-auto min-h-[calc(100vh-8rem)] flex flex-col p-6 gap-6 animate-in fade-in duration-300 pb-28">
 
             {/* 1. Dynamic Summary (From AI) */}
             <p className="text-sm text-muted font-medium px-2">
@@ -67,8 +67,8 @@ export default function ResultsPage() {
             {/* 3. Safety Disclaimer */}
             <DisclaimerBanner />
 
-            {/* Fixed bottom action bar — above bottom nav */}
-            <div className="fixed bottom-16 left-0 right-0 z-40 bg-white border-t border-slate-200 shadow-[0_-4px_16px_rgba(0,0,0,0.07)] px-4 py-3 flex flex-col gap-3">
+            {/* Action bar (in-flow at bottom) */}
+            <div className="w-full mt-4 flex flex-col gap-3">
                 <Button
                     variant="primary"
                     size="lg"
