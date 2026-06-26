@@ -12,20 +12,52 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const typeFilter = searchParams.get('type');
 
-    let query = supabase
+    // 1. Fetch scans
+    let scansQuery = supabase
       .from('scans')
       .select('id, type, summary, created_at')
       .eq('user_id', user.id)
       .order('created_at', { ascending: false });
 
     if (typeFilter) {
-      query = query.eq('type', typeFilter);
+      scansQuery = scansQuery.eq('type', typeFilter);
     }
 
-    const { data: records, error: dbError } = await query;
-    if (dbError) throw dbError;
+    const { data: scans, error: scansError } = await scansQuery;
+    if (scansError) throw scansError;
 
-    return NextResponse.json(records);
+    // 2. Fetch orphan medications (scan_id is null)
+    let medsQuery = supabase
+      .from('medications')
+      .select('id, drug_name, created_at')
+      .eq('user_id', user.id)
+      .is('scan_id', null)
+      .order('created_at', { ascending: false });
+
+    const { data: meds, error: medsError } = await medsQuery;
+    if (medsError) throw medsError;
+
+    // 3. Map medications to virtual scan records
+    const virtualScans = (meds || []).map((m: any) => ({
+      id: m.id,
+      type: 'prescription' as const,
+      summary: m.drug_name,
+      created_at: m.created_at
+    }));
+
+    // 4. Merge and sort chronologically
+    const allRecords = [...(scans || []), ...virtualScans];
+
+    let filteredRecords = allRecords;
+    if (typeFilter === 'lab_result') {
+      filteredRecords = allRecords.filter(r => r.type === 'lab_result');
+    } else if (typeFilter === 'prescription') {
+      filteredRecords = allRecords.filter(r => r.type === 'prescription');
+    }
+
+    filteredRecords.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+    return NextResponse.json(filteredRecords);
   } catch (err: any) {
     return NextResponse.json({ error: err.message || 'Internal Server Error', code: '500' }, { status: 500 });
   }
@@ -43,7 +75,7 @@ export async function POST(request: NextRequest) {
 
     // 2. Parse request body
     const body = await request.json();
-    const { drug_name, dosage, frequency, purpose, timing, instructions } = body;
+    const { drug_name, dosage, frequency, purpose, timing, instructions, start_date, end_date, warnings } = body;
 
     // 3. Server-side validation
     if (!drug_name || drug_name.trim() === '') {
@@ -56,48 +88,32 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Frequency is required' }, { status: 400 });
     }
 
-    // 4. Insert a scans row (manual entries have no image/AI output — placeholders, not null)
-    const { data: scanRow, error: scanError } = await supabase
-      .from('scans')
-      .insert({
-        user_id: user.id,
-        type: 'prescription',
-        image_url: 'manual-entry',
-        ai_response: {},
-        summary: drug_name.trim(),
-        language: 'english',
-      })
-      .select()
-      .single();
-
-    if (scanError) {
-      console.error('Supabase DB error (scans):', scanError);
-      throw scanError;
-    }
-
-    // 5. Insert the medication row tied to the new scan
+    // 4. Insert into medications table directly
     const { data: medRow, error: medError } = await supabase
       .from('medications')
       .insert({
         user_id: user.id,
-        scan_id: scanRow.id,
+        scan_id: null,
         drug_name: drug_name.trim(),
         dosage: dosage.trim(),
         frequency: frequency.trim(),
-        timing: timing || null,
-        purpose: purpose ? purpose.trim() : 'Not specified',
-        instructions: instructions ? instructions.trim() : 'See product packaging',
-        is_active: true,
+        purpose: purpose && purpose.trim() !== '' ? purpose.trim() : 'Not specified',
+        timing: timing || [],
+        instructions: instructions && instructions.trim() !== '' ? instructions.trim() : 'See product packaging',
+        warnings: warnings && warnings.trim() !== '' ? warnings.trim() : null,
+        start_date: start_date || null,
+        end_date: end_date || null,
+        is_active: true
       })
       .select()
       .single();
 
     if (medError) {
-      console.error('Supabase DB error (medications):', medError);
+      console.error('Supabase DB error:', medError);
       throw medError;
     }
 
-    return NextResponse.json({ success: true, record: scanRow, medication: medRow });
+    return NextResponse.json({ success: true, record: medRow });
   } catch (error) {
     console.error('API Server Error:', error);
     const errorMessage = error instanceof Error ? error.message : 'Internal Server Error';

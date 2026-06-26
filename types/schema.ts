@@ -8,6 +8,8 @@ export interface MedicationRecord {
     purpose: string;
     instructions: string;
     warnings?: string;
+    start_date?: string | null;
+    end_date?: string | null;
 }
 
 export interface ScanResult {
