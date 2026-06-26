@@ -7,7 +7,7 @@ import { MedicationCard } from '@/components/ui/MedicationCard';
 import { DisclaimerBanner } from '@/components/ui/DisclaimerBanner';
 import { Button } from '@/components/ui/Button';
 import { ScanResult } from '@/types/schema';
-import { FloppyDiskIcon, BellIcon } from '@phosphor-icons/react';
+import { ScanIcon, BellIcon } from '@phosphor-icons/react';
 
 export default function ResultsPage() {
     const params = useParams();
@@ -33,10 +33,6 @@ export default function ResultsPage() {
         loadResult();
     }, [params.id]);
 
-    const handleSaveToRecords = () => {
-        router.push('/records');
-    };
-
     if (error) {
         return (
             <div className="w-full h-[calc(100vh-8rem)] flex items-center justify-center px-6 text-center">
@@ -54,7 +50,7 @@ export default function ResultsPage() {
     }
 
     return (
-        <div className="w-full max-w-[480px] mx-auto min-h-[calc(100vh-8rem)] flex flex-col p-6 gap-6 animate-in fade-in duration-300">
+        <div className="w-full max-w-[480px] mx-auto min-h-[calc(100vh-8rem)] flex flex-col p-6 gap-6 animate-in fade-in duration-300 pb-52">
 
             {/* 1. Dynamic Summary (From AI) */}
             <p className="text-sm text-muted font-medium px-2">
@@ -71,26 +67,26 @@ export default function ResultsPage() {
             {/* 3. Safety Disclaimer */}
             <DisclaimerBanner />
 
-            {/* 4. Bottom Action Bar */}
-            <div className="flex flex-col gap-3 mt-4 mb-8">
+            {/* Fixed bottom action bar — above bottom nav */}
+            <div className="fixed bottom-16 left-0 right-0 z-40 bg-white border-t border-slate-200 shadow-[0_-4px_16px_rgba(0,0,0,0.07)] px-4 py-3 flex flex-col gap-3">
                 <Button
                     variant="primary"
-                    size="lg"
-                    className="w-full"
-                    onClick={handleSaveToRecords}
-                    iconLeft={<FloppyDiskIcon className="w-5 h-5" weight="fill" />}
-                >
-                    {t.results.saveToRecords}
-                </Button>
-
-                <Button
-                    variant="secondary"
                     size="lg"
                     className="w-full"
                     onClick={() => router.push('/reminders')}
                     iconLeft={<BellIcon className="w-5 h-5" weight="fill" />}
                 >
                     {t.results.setReminders}
+                </Button>
+
+                <Button
+                    variant="secondary"
+                    size="lg"
+                    className="w-full"
+                    onClick={() => router.push('/scan')}
+                    iconLeft={<ScanIcon className="w-5 h-5" weight="fill" />}
+                >
+                    Scan Again
                 </Button>
             </div>
 

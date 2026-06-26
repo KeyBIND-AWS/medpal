@@ -351,7 +351,7 @@ export default function RecordsPage() {
 
     if (records.length === 0) {
         return (
-            <div className="w-full h-full flex flex-col items-center justify-center p-6 gap-6 min-h-[70vh]">
+            <div className="w-full h-full flex flex-col items-center justify-center p-6 gap-4 min-h-[70vh]">
                 <EmptyState
                     title={t.emptyStates.noRecordsTitle}
                     description={t.emptyStates.noRecordsDesc}
@@ -359,7 +359,7 @@ export default function RecordsPage() {
                     onAction={() => router.push('/scan')}
                 />
                 
-                <span className="text-xs text-muted font-bold -mt-2">OR</span>
+                <span className="text-xs text-muted font-bold">OR</span>
 
                 <Button
                     variant="secondary"
@@ -378,18 +378,15 @@ export default function RecordsPage() {
 
     return (
         <div className="w-full flex flex-col p-4 md:p-6 gap-6 animate-in fade-in duration-300 pb-24">
-            
-            <div className="flex items-center justify-between gap-3 shrink-0">
-                <Button
-                    variant="primary"
-                    size="sm"
-                    className="flex-1 max-w-[200px]"
-                    iconLeft={<PlusIcon className="w-4 h-4" weight="bold" />}
-                    onClick={() => setIsMedModalOpen(true)}
-                >
-                    Add Medication
-                </Button>
-            </div>
+
+            {/* Floating action button */}
+            <button
+                onClick={() => setIsMedModalOpen(true)}
+                className="fixed bottom-20 right-4 z-40 w-14 h-14 rounded-full bg-primary text-white shadow-lg shadow-primary/30 flex items-center justify-center hover:bg-primary-hover active:scale-95 transition-all"
+                aria-label="Add Medication"
+            >
+                <PlusIcon className="w-7 h-7" weight="bold" />
+            </button>
 
             {/* Clean iOS-style Filter Tabs */}
             <div className="w-full bg-slate-200/80 p-1 rounded-xl flex items-center gap-1 shrink-0">
