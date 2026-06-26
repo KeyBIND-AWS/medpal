@@ -27,12 +27,13 @@ export const viewport: Viewport = {
     width: 'device-width',
     initialScale: 1,
     maximumScale: 1,
+    viewportFit: 'cover', // enables env(safe-area-inset-*) on iOS notch/home indicator
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
     return (
         <html lang="en" className={inter.variable}>
-        <body className="bg-white text-ink font-sans h-screen overflow-hidden">
+        <body className="bg-white text-ink font-sans h-[100dvh] overflow-hidden">
         {/* PWA Service Worker for caching and push notifications */}
         <ServiceWorkerRegistration />
 
