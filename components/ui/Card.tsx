@@ -17,7 +17,7 @@ export const Card = React.forwardRef<HTMLDivElement, CardProps>(({
 
     // Interactive additions for clickable cards (like the Records list)
     const interactiveStyles = isInteractive
-        ? "transition-all duration-200 hover:shadow-md hover:border-[#2B4BFF]/30 active:scale-[0.98] cursor-pointer select-none"
+        ? "transition-all duration-200 hover:shadow-md hover:border-primary/30 active:scale-[0.98] cursor-pointer select-none"
         : "";
 
     return (

@@ -100,11 +100,7 @@ export default function AddRecordPage() {
   }
 
   return (
-    <div className="relative min-h-screen flex flex-col justify-between bg-slate-950 text-slate-100 overflow-hidden font-sans">
-      {/* Decorative glowing gradient spheres */}
-      <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-cyan-500/10 rounded-full blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-teal-500/10 rounded-full blur-[120px] pointer-events-none" />
-
+    <div className="relative min-h-screen flex flex-col justify-between bg-white text-ink overflow-hidden font-sans">
       {/* Header */}
       <Header variant="records" />
 
@@ -113,22 +109,22 @@ export default function AddRecordPage() {
         <div className="w-full max-w-2xl">
           {/* Back button */}
           <Link
-            href="/dashboard"
-            className="inline-flex items-center gap-2 text-xs font-semibold text-slate-500 hover:text-slate-350 mb-6 transition-colors duration-200"
+            href="/records"
+            className="inline-flex items-center gap-2 text-xs font-semibold text-muted hover:text-ink mb-6 transition-colors duration-200"
           >
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4">
               <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
             </svg>
-            Back to Dashboard
+            Back to Records
           </Link>
 
-          {/* Glassmorphic Form Card */}
-          <div className="w-full p-8 rounded-3xl bg-slate-900/40 border border-slate-800/80 backdrop-blur-xl shadow-2xl">
+          {/* Form Card */}
+          <div className="w-full p-8 rounded-3xl bg-white border border-slate-200 shadow-md">
             <div className="mb-8">
-              <h1 className="text-2xl font-bold tracking-tight mb-2">
+              <h1 className="text-2xl font-extrabold tracking-tight mb-2 text-ink">
                 Add Medication Record
               </h1>
-              <p className="text-sm text-slate-400">
+              <p className="text-sm text-muted">
                 Log a new prescription or over-the-counter medicine to your active clinical profile.
               </p>
             </div>
@@ -136,8 +132,8 @@ export default function AddRecordPage() {
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Error Box */}
               {error && (
-                <div className="p-4 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-450 text-xs flex items-center gap-3 animate-headshake">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5 flex-shrink-0 text-rose-400">
+                <div className="p-4 rounded-xl bg-danger/10 border border-danger/20 text-danger text-xs flex items-center gap-3 animate-headshake">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5 flex-shrink-0 text-danger">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 7.5h.008v.008H12v-.008Z" />
                   </svg>
                   <span>{error}</span>
@@ -146,8 +142,8 @@ export default function AddRecordPage() {
 
               {/* Success Box */}
               {success && (
-                <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs flex items-center gap-3">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5 flex-shrink-0 text-emerald-400">
+                <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 text-xs flex items-center gap-3">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5 flex-shrink-0 text-emerald-600">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 0 1-1.043 3.296 3.745 3.745 0 0 1-3.296 1.043A3.745 3.745 0 0 1 12 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 0 1-3.296-1.043 3.745 3.745 0 0 1-1.043-3.296A3.745 3.745 0 0 1 3 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 0 1 1.043-3.296 3.746 3.746 0 0 1 3.296-1.043A3.746 3.746 0 0 1 12 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 0 1 3.296 1.043 3.746 3.746 0 0 1 1.043 3.296A3.745 3.745 0 0 1 21 12Z" />
                   </svg>
                   <span>Medication record added successfully! Redirecting to console...</span>
@@ -158,8 +154,8 @@ export default function AddRecordPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 {/* Drug Name */}
                 <div className="flex flex-col gap-1.5">
-                  <label htmlFor="drugName" className="text-xs font-semibold text-slate-350">
-                    Drug Name <span className="text-cyan-400">*</span>
+                  <label htmlFor="drugName" className="text-xs font-semibold text-ink">
+                    Drug Name <span className="text-danger">*</span>
                   </label>
                   <input
                     type="text"
@@ -169,14 +165,14 @@ export default function AddRecordPage() {
                     placeholder="e.g. Amoxicillin"
                     required
                     disabled={submitting || success}
-                    className="h-11 px-4 rounded-xl bg-slate-950/60 border border-slate-800 focus:border-cyan-500/80 focus:ring-2 focus:ring-cyan-500/10 text-slate-100 placeholder-slate-600 text-sm outline-none transition-all duration-200"
+                    className="h-11 px-4 rounded-xl bg-slate-50 border border-slate-200 focus:border-primary/80 focus:ring-2 focus:ring-primary/10 text-ink placeholder-slate-400 text-sm outline-none transition-all duration-200"
                   />
                 </div>
 
                 {/* Dosage */}
                 <div className="flex flex-col gap-1.5">
-                  <label htmlFor="dosage" className="text-xs font-semibold text-slate-350">
-                    Dosage <span className="text-cyan-400">*</span>
+                  <label htmlFor="dosage" className="text-xs font-semibold text-ink">
+                    Dosage <span className="text-danger">*</span>
                   </label>
                   <input
                     type="text"
@@ -186,14 +182,14 @@ export default function AddRecordPage() {
                     placeholder="e.g. 500mg (1 capsule)"
                     required
                     disabled={submitting || success}
-                    className="h-11 px-4 rounded-xl bg-slate-950/60 border border-slate-800 focus:border-cyan-500/80 focus:ring-2 focus:ring-cyan-500/10 text-slate-100 placeholder-slate-600 text-sm outline-none transition-all duration-200"
+                    className="h-11 px-4 rounded-xl bg-slate-50 border border-slate-200 focus:border-primary/80 focus:ring-2 focus:ring-primary/10 text-ink placeholder-slate-400 text-sm outline-none transition-all duration-200"
                   />
                 </div>
 
                 {/* Frequency */}
                 <div className="flex flex-col gap-1.5">
-                  <label htmlFor="frequency" className="text-xs font-semibold text-slate-350">
-                    Frequency <span className="text-cyan-400">*</span>
+                  <label htmlFor="frequency" className="text-xs font-semibold text-ink">
+                    Frequency <span className="text-danger">*</span>
                   </label>
                   <input
                     type="text"
@@ -203,14 +199,14 @@ export default function AddRecordPage() {
                     placeholder="e.g. Twice daily"
                     required
                     disabled={submitting || success}
-                    className="h-11 px-4 rounded-xl bg-slate-950/60 border border-slate-800 focus:border-cyan-500/80 focus:ring-2 focus:ring-cyan-500/10 text-slate-100 placeholder-slate-600 text-sm outline-none transition-all duration-200"
+                    className="h-11 px-4 rounded-xl bg-slate-50 border border-slate-200 focus:border-primary/80 focus:ring-2 focus:ring-primary/10 text-ink placeholder-slate-400 text-sm outline-none transition-all duration-200"
                   />
                 </div>
 
                 {/* Purpose */}
                 <div className="flex flex-col gap-1.5">
-                  <label htmlFor="purpose" className="text-xs font-semibold text-slate-350">
-                    Purpose <span className="text-slate-500">(Optional)</span>
+                  <label htmlFor="purpose" className="text-xs font-semibold text-ink">
+                    Purpose <span className="text-muted">(Optional)</span>
                   </label>
                   <input
                     type="text"
@@ -219,15 +215,15 @@ export default function AddRecordPage() {
                     onChange={(e) => setPurpose(e.target.value)}
                     placeholder="e.g. Bacterial infection"
                     disabled={submitting || success}
-                    className="h-11 px-4 rounded-xl bg-slate-950/60 border border-slate-800 focus:border-cyan-500/80 focus:ring-2 focus:ring-cyan-500/10 text-slate-100 placeholder-slate-600 text-sm outline-none transition-all duration-200"
+                    className="h-11 px-4 rounded-xl bg-slate-50 border border-slate-200 focus:border-primary/80 focus:ring-2 focus:ring-primary/10 text-ink placeholder-slate-400 text-sm outline-none transition-all duration-200"
                   />
                 </div>
               </div>
 
               {/* Timing Checkboxes */}
               <div className="flex flex-col gap-2.5">
-                <span className="text-xs font-semibold text-slate-355">
-                  Timing Checkboxes <span className="text-slate-500">(Select all that apply)</span>
+                <span className="text-xs font-semibold text-ink">
+                  Timing Checkboxes <span className="text-muted">(Select all that apply)</span>
                 </span>
                 <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
                   {timingOptions.map((option) => {
@@ -240,12 +236,12 @@ export default function AddRecordPage() {
                         disabled={submitting || success}
                         className={`h-11 flex items-center justify-center gap-2 rounded-xl border text-xs font-semibold transition-all duration-200 active:scale-[0.98] ${
                           isChecked
-                            ? 'bg-cyan-500/10 border-cyan-500/60 text-cyan-400 shadow-inner shadow-cyan-500/5'
-                            : 'bg-slate-950/40 border-slate-800/80 text-slate-400 hover:border-slate-700/60'
+                            ? 'bg-tint border-primary/60 text-primary'
+                            : 'bg-white border-slate-200 text-muted hover:border-slate-300'
                         }`}
                       >
                         <div className={`w-3.5 h-3.5 rounded flex items-center justify-center border transition-all duration-150 ${
-                          isChecked ? 'bg-cyan-500 border-cyan-500 text-slate-950' : 'border-slate-800'
+                          isChecked ? 'bg-primary border-primary text-white' : 'border-slate-300'
                         }`}>
                           {isChecked && (
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="currentColor" className="w-2 h-2">
@@ -262,8 +258,8 @@ export default function AddRecordPage() {
 
               {/* Instructions */}
               <div className="flex flex-col gap-1.5">
-                <label htmlFor="instructions" className="text-xs font-semibold text-slate-350">
-                  Instructions <span className="text-slate-500">(Optional)</span>
+                <label htmlFor="instructions" className="text-xs font-semibold text-ink">
+                  Instructions <span className="text-muted">(Optional)</span>
                 </label>
                 <textarea
                   id="instructions"
@@ -272,26 +268,26 @@ export default function AddRecordPage() {
                   placeholder="e.g. Take with a glass of water, avoid dairy for 2 hours after taking."
                   disabled={submitting || success}
                   rows={3}
-                  className="p-4 rounded-xl bg-slate-950/60 border border-slate-800 focus:border-cyan-500/80 focus:ring-2 focus:ring-cyan-500/10 text-slate-100 placeholder-slate-600 text-sm outline-none resize-none transition-all duration-200"
+                  className="p-4 rounded-xl bg-slate-50 border border-slate-200 focus:border-primary/80 focus:ring-2 focus:ring-primary/10 text-ink placeholder-slate-400 text-sm outline-none resize-none transition-all duration-200"
                 />
               </div>
 
               {/* Action Buttons */}
-              <div className="pt-4 flex items-center justify-end gap-4 border-t border-slate-900/60">
+              <div className="pt-4 flex items-center justify-end gap-4 border-t border-slate-200">
                 <Link
-                  href="/dashboard"
-                  className="px-5 h-11 inline-flex items-center justify-center rounded-xl bg-slate-950 border border-slate-800/60 text-slate-400 hover:bg-slate-900 hover:text-slate-200 text-sm font-semibold transition-all duration-200"
+                  href="/records"
+                  className="px-5 h-11 inline-flex items-center justify-center rounded-xl bg-white border border-slate-200 text-muted hover:bg-slate-100 hover:text-ink text-sm font-semibold transition-all duration-200"
                 >
                   Cancel
                 </Link>
                 <button
                   type="submit"
                   disabled={submitting || success}
-                  className="px-6 h-11 inline-flex items-center justify-center rounded-xl bg-gradient-to-r from-cyan-500 to-teal-500 text-slate-950 font-bold hover:from-cyan-400 hover:to-teal-400 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-cyan-500/10 transition-all duration-200 active:scale-[0.98]"
+                  className="px-6 h-11 inline-flex items-center justify-center rounded-xl bg-primary text-white font-bold hover:bg-primary-hover disabled:opacity-50 disabled:cursor-not-allowed shadow-md shadow-primary/10 transition-all duration-200 active:scale-[0.98]"
                 >
                   {submitting ? (
                     <div className="flex items-center gap-2">
-                      <div className="w-4 h-4 rounded-full border-2 border-slate-950 border-t-transparent animate-spin" />
+                      <div className="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin" />
                       Saving...
                     </div>
                   ) : (

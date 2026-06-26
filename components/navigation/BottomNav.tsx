@@ -10,7 +10,7 @@ export function BottomNav() {
     const { t } = useTranslation();
 
     return (
-        <nav className="h-16 w-full px-4 flex items-center justify-around bg-white border-t border-slate-200">
+        <nav className="h-16 w-full px-4 flex items-center justify-around bg-white rounded-t-2xl">
             {NAV_ITEMS.map((item) => {
                 const Icon = item.icon;
                 const isActive = pathname.startsWith(item.href);
@@ -20,7 +20,7 @@ export function BottomNav() {
                         key={item.href}
                         href={item.href}
                         className={`flex flex-1 flex-col items-center justify-center gap-1 transition-colors ${
-                            isActive ? 'text-[#2B4BFF]' : 'text-slate-400 hover:text-slate-600'
+                            isActive ? 'text-primary' : 'text-muted hover:text-ink'
                         }`}
                     >
                         <Icon

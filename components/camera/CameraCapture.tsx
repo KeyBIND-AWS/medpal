@@ -126,12 +126,12 @@ export function CameraCapture({ onCapture }: CameraCaptureProps) {
 
           <div
               onClick={() => fileInputRef.current?.click()}
-              className="w-full h-full max-h-[640px] rounded-3xl border-2 border-dashed border-[#2B4BFF] bg-[#2B4BFF]/5 flex flex-col items-center justify-center gap-3 cursor-pointer hover:bg-[#2B4BFF]/10 transition-all group select-none p-6 text-center shadow-inner"
+              className="w-full h-full max-h-[640px] rounded-3xl border-2 border-dashed border-primary bg-primary/5 flex flex-col items-center justify-center gap-3 cursor-pointer hover:bg-primary/10 transition-all group select-none p-6 text-center shadow-inner"
           >
-            <div className="w-16 h-16 rounded-full bg-[#2B4BFF] text-white flex items-center justify-center group-hover:scale-110 transition-transform shadow-md">
+            <div className="w-16 h-16 rounded-full bg-primary text-white flex items-center justify-center group-hover:scale-110 transition-transform shadow-md">
               <UploadSimpleIcon className="w-8 h-8" weight="fill" />
             </div>
-            <span className="font-poppins font-bold text-sm text-[#2B4BFF]">
+            <span className="font-sans font-bold text-sm text-primary">
             {t.scanner.uploadGallery}
           </span>
             <span className="text-xs text-rose-500 max-w-[85%] mt-1 bg-rose-50 p-2 rounded-lg border border-rose-200">
@@ -161,15 +161,15 @@ export function CameraCapture({ onCapture }: CameraCaptureProps) {
           {status === 'requesting' && (
               <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/50 text-sm text-white backdrop-blur-sm gap-3">
                 <div className="w-8 h-8 rounded-full border-4 border-white/20 border-t-white animate-spin" />
-                <span className="font-poppins font-medium animate-pulse">Initializing camera...</span>
+                <span className="font-sans font-medium animate-pulse">Initializing camera...</span>
               </div>
           )}
 
           {/* Viewfinder Target Reticle */}
           {status === 'streaming' && (
               <div className="absolute top-8 left-8 right-8 bottom-28 border-2 border-white/30 rounded-2xl pointer-events-none flex flex-col justify-between p-4">
-                <div className="w-8 h-8 border-t-4 border-l-4 border-[#2B4BFF]" />
-                <div className="w-8 h-8 border-b-4 border-r-4 border-[#2B4BFF] self-end" />
+                <div className="w-8 h-8 border-t-4 border-l-4 border-primary" />
+                <div className="w-8 h-8 border-b-4 border-r-4 border-primary self-end" />
               </div>
           )}
 
@@ -186,9 +186,9 @@ export function CameraCapture({ onCapture }: CameraCaptureProps) {
             <button
                 onClick={handleSnap}
                 disabled={status !== 'streaming'}
-                className="w-16 h-16 rounded-full bg-white border-4 border-[#2B4BFF] flex items-center justify-center active:scale-90 transition-transform shadow-lg disabled:opacity-50 disabled:active:scale-100"
+                className="w-16 h-16 rounded-full bg-white border-4 border-primary flex items-center justify-center active:scale-90 transition-transform shadow-lg disabled:opacity-50 disabled:active:scale-100"
             >
-              <div className="w-12 h-12 rounded-full bg-[#2B4BFF]" />
+              <div className="w-12 h-12 rounded-full bg-primary" />
             </button>
 
             <div className="w-12" />

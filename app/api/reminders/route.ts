@@ -11,7 +11,10 @@ export async function GET(request: NextRequest) {
 
     const { data: reminders, error: dbError } = await supabase
       .from('reminders')
-      .select('id, medication_id, time, label, is_active, created_at')
+      .select(`
+        id, time, label, is_active, created_at,
+        medication:medications ( drug_name, dosage )
+      `)
       .eq('user_id', user.id)
       .order('time', { ascending: true });
 

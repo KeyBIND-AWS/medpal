@@ -14,8 +14,8 @@ export function Toggle({ enabled, onChange }: ToggleProps) {
             role="switch"
             aria-checked={enabled}
             onClick={() => onChange(!enabled)}
-            className={`relative inline-flex h-7 w-12 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2B4BFF] focus-visible:ring-offset-2 ${
-                enabled ? 'bg-[#2B4BFF]' : 'bg-slate-300'
+            className={`relative inline-flex h-7 w-12 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ${
+                enabled ? 'bg-primary' : 'bg-slate-300'
             }`}
         >
       <span
