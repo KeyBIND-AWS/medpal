@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
-import { analyzeImage } from '@/lib/bedrock';
+import { analyzePrescriptionImage } from '@/lib/prescription';
 
 export async function POST(req: NextRequest) {
   try {
@@ -44,29 +44,21 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 3. Request vision analysis from AWS Bedrock with a 30s timeout protection
-    let aiResponseString: string;
+    // 3. Request vision analysis from AWS Textract/Comprehend Medical with a 30s timeout protection
+    let aiPayload: any;
     try {
-      aiResponseString = await Promise.race([
-        analyzeImage(image, type, language),
+      aiPayload = await Promise.race([
+        analyzePrescriptionImage(image, language),
         new Promise<never>((_, reject) => 
-          setTimeout(() => reject(new Error('Bedrock processing gateway timeout.')), 30000)
+          setTimeout(() => reject(new Error('Textract processing gateway timeout.')), 30000)
         )
       ]);
     } catch (timeoutErr: any) {
       return NextResponse.json(
-        { error: timeoutErr.message || 'AI engine timeout.', code: 'BEDROCK_TIMEOUT' },
+        { error: timeoutErr.message || 'AI engine timeout.', code: 'TEXTRACT_TIMEOUT' },
         { status: 504 }
       );
     }
-
-    // Claude sometimes wraps JSON in markdown fences despite instructions not to
-    let cleanedResponse = aiResponseString.trim();
-    if (cleanedResponse.startsWith('```')) {
-      cleanedResponse = cleanedResponse.replace(/^```json\s*/i, '').replace(/```\s*$/, '').trim();
-    }
-
-    const aiPayload = JSON.parse(cleanedResponse);
 
     // 4. Handle Illegible Handwriting Fallback Path
     if (!aiPayload.readable) {
