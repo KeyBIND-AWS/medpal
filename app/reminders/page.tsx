@@ -6,7 +6,7 @@ import { useTranslation } from '@/contexts/LanguageContext';
 import { ReminderCard } from '@/components/ui/ReminderCard';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Button } from '@/components/ui/Button';
-import { SunIcon, CloudSunIcon, MoonIcon, PlusIcon } from '@phosphor-icons/react';
+import { SunIcon, CloudSunIcon, MoonIcon, PlusIcon, BellIcon } from '@phosphor-icons/react';
 import { createClient } from '@/utils/supabase/client';
 
 type Reminder = {
@@ -369,6 +369,7 @@ export default function RemindersPage() {
                     description={t.remindersPage.emptyDesc}
                     actionLabel="Add Reminder"
                     onAction={handleOpenModal}
+                    icon={<BellIcon className="w-8 h-8 text-slate-400" />}
                 />
                 {renderModal()}
             </div>
@@ -377,17 +378,17 @@ export default function RemindersPage() {
 
     return (
         <div className="w-full flex flex-col p-4 md:p-6 gap-8 pb-24 animate-in fade-in duration-300">
-            <div className="flex items-center justify-between gap-3 shrink-0">
-                <Button
-                    variant="primary"
-                    size="sm"
-                    className="flex-1 max-w-[200px]"
-                    iconLeft={<PlusIcon className="w-4 h-4" weight="bold" />}
-                    onClick={handleOpenModal}
-                >
-                    Add Reminder
-                </Button>
 
+            {/* Floating action button */}
+            <button
+                onClick={handleOpenModal}
+                className="fixed bottom-20 right-4 z-40 w-14 h-14 rounded-full bg-primary text-white shadow-lg shadow-primary/30 flex items-center justify-center hover:bg-primary-hover active:scale-95 transition-all"
+                aria-label="Add Reminder"
+            >
+                <PlusIcon className="w-7 h-7" weight="bold" />
+            </button>
+
+            <div className="flex items-center justify-between gap-3 shrink-0">
                 <button
                     onClick={handleTestNotification}
                     className="px-3 h-9 text-[10px] uppercase font-bold tracking-wider border border-slate-200 text-slate-400 rounded-xl hover:bg-slate-50 hover:text-slate-600 transition-colors"

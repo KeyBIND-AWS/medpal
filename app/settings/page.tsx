@@ -134,7 +134,7 @@ export default function SettingsPage() {
       // Auto-hide success message and redirect
       setTimeout(() => {
         setSuccessMsg(null)
-        router.push('/dashboard')
+        router.push('/scan')
       }, 2000)
     } catch (err) {
       console.error('Error clearing data:', err)
@@ -146,7 +146,7 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="relative min-h-screen flex flex-col justify-between bg-canvas text-ink overflow-hidden font-sans">
+    <div className="relative min-h-screen flex flex-col justify-between bg-white text-ink overflow-hidden font-sans">
       {/* Header */}
       <Header variant="settings" />
 
@@ -155,13 +155,13 @@ export default function SettingsPage() {
         <div className="w-full max-w-2xl">
           {/* Back to Dashboard breadcrumb */}
           <Link
-            href="/dashboard"
+            href="/scan"
             className="inline-flex items-center gap-2 text-xs font-semibold text-muted hover:text-ink mb-6 transition-colors duration-200"
           >
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4">
               <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
             </svg>
-            Back to Dashboard
+            Back to Home
           </Link>
 
           {/* Settings Card */}
@@ -225,7 +225,7 @@ export default function SettingsPage() {
                           className={`h-12 flex items-center justify-between px-5 rounded-xl border text-sm font-semibold transition-all duration-200 active:scale-[0.98] ${
                             isSelected
                               ? 'bg-tint border-primary/60 text-primary'
-                              : 'bg-canvas border-slate-200 text-muted hover:border-slate-300 hover:text-ink'
+                              : 'bg-white border-slate-200 text-muted hover:border-slate-300 hover:text-ink'
                           }`}
                         >
                           <span>{option.label}</span>
@@ -303,7 +303,7 @@ export default function SettingsPage() {
                 type="button"
                 onClick={() => setShowConfirmModal(false)}
                 disabled={clearingData}
-                className="px-5 h-11 inline-flex items-center justify-center rounded-xl bg-canvas border border-slate-200 text-muted hover:bg-slate-100 hover:text-ink text-sm font-semibold transition-all duration-200 cursor-pointer disabled:opacity-50"
+                className="px-5 h-11 inline-flex items-center justify-center rounded-xl bg-white border border-slate-200 text-muted hover:bg-slate-100 hover:text-ink text-sm font-semibold transition-all duration-200 cursor-pointer disabled:opacity-50"
               >
                 Cancel
               </button>

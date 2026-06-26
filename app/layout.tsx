@@ -32,7 +32,7 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
     return (
         <html lang="en" className={inter.variable}>
-        <body className="bg-canvas text-ink font-sans h-screen overflow-hidden">
+        <body className="bg-white text-ink font-sans h-screen overflow-hidden">
         {/* PWA Service Worker for caching and push notifications */}
         <ServiceWorkerRegistration />
 

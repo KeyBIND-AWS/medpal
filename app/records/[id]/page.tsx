@@ -7,7 +7,7 @@ import { MedicationCard } from '@/components/ui/MedicationCard';
 import { DisclaimerBanner } from '@/components/ui/DisclaimerBanner';
 import { Button } from '@/components/ui/Button';
 import { ScanResult } from '@/types/schema';
-import { BellIcon, TrashIcon, CaretLeftIcon } from '@phosphor-icons/react';
+import { BellIcon, TrashIcon } from '@phosphor-icons/react';
 
 export default function RecordDetailPage() {
     const params = useParams();
@@ -78,15 +78,6 @@ export default function RecordDetailPage() {
 
     return (
         <div className="w-full flex flex-col p-4 md:p-6 gap-6 animate-in fade-in duration-300 pb-24">
-
-            {/* Back Button for internal navigation */}
-            <button
-                onClick={() => router.back()}
-                className="flex items-center gap-1 text-sm font-bold text-muted hover:text-ink transition-colors self-start mb-2"
-            >
-                <CaretLeftIcon className="w-4 h-4" weight="bold" />
-                Back to Records
-            </button>
 
             {/* 1. Dynamic Summary */}
             <p className="text-sm text-muted font-medium px-2">
