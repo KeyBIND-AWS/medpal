@@ -1,12 +1,12 @@
 "use client";
 
-import React, { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { Suspense, useEffect, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useTranslation } from '@/contexts/LanguageContext';
 import { ReminderCard } from '@/components/ui/ReminderCard';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Button } from '@/components/ui/Button';
-import { SunIcon, CloudSunIcon, MoonIcon, PlusIcon, BellIcon } from '@phosphor-icons/react';
+import { SunIcon, CloudSunIcon, MoonIcon, PlusIcon, BellIcon, TrashIcon } from '@phosphor-icons/react';
 import { createClient } from '@/utils/supabase/client';
 
 type Reminder = {
@@ -25,6 +25,15 @@ type MedicationOption = {
     dosage: string;
 };
 
+interface SuggestedReminder {
+    tempId: string;
+    medication_id: string;
+    drug_name: string;
+    dosage: string;
+    time: string;
+    label: string;
+}
+
 function derivePeriod(time: string): 'morning' | 'afternoon' | 'evening' {
     const match = time.match(/(\d{1,2}):(\d{2})(?::\d{2})?\s*(AM|PM)?/i);
     if (!match) return 'morning';
@@ -37,13 +46,59 @@ function derivePeriod(time: string): 'morning' | 'afternoon' | 'evening' {
     return 'evening';
 }
 
-export default function RemindersPage() {
+function suggestTimes(frequency: string, timing?: string[]): string[] {
+    if (timing?.length) {
+        const map: Record<string, string> = {
+            'morning':          '08:00',
+            'afternoon':        '14:00',
+            'evening':          '18:00',
+            'bedtime':          '21:00',
+            'night':            '21:00',
+            'before sleep':     '21:00',
+            'before bed':       '21:00',
+            'at bedtime':       '21:00',
+            'after breakfast':  '08:00',
+            'before breakfast': '07:30',
+            'with breakfast':   '08:00',
+            'after lunch':      '12:30',
+            'before lunch':     '12:00',
+            'with lunch':       '12:30',
+            'after dinner':     '19:00',
+            'before dinner':    '18:30',
+            'with dinner':      '19:00',
+            'after supper':     '19:00',
+            'with supper':      '19:00',
+            'with meals':       '12:30',
+        };
+        return timing.map(t => {
+            const lower = t.toLowerCase();
+            for (const [key, val] of Object.entries(map)) {
+                if (lower.includes(key)) return val;
+            }
+            return '08:00';
+        });
+    }
+    const f = frequency.toLowerCase();
+    if (f.includes('four') || f.includes('4x') || f.includes('qid'))
+        return ['08:00', '12:00', '16:00', '20:00'];
+    if (f.includes('three') || f.includes('3x') || f.includes('tid') || f.includes('thrice'))
+        return ['08:00', '14:00', '20:00'];
+    if (f.includes('twice') || f.includes('2x') || f.includes('bid') || f.includes('two times'))
+        return ['08:00', '20:00'];
+    return ['08:00'];
+}
+
+
+function RemindersInner() {
     const { t } = useTranslation();
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const scanId = searchParams.get('scan_id');
+
     const [reminders, setReminders] = useState<Reminder[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
-    // Modal states
+    // Single-add modal states
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [medications, setMedications] = useState<MedicationOption[]>([]);
     const [isLoadingMeds, setIsLoadingMeds] = useState(false);
@@ -52,6 +107,11 @@ export default function RemindersPage() {
     const [label, setLabel] = useState('');
     const [submitting, setSubmitting] = useState(false);
     const [modalError, setModalError] = useState<string | null>(null);
+
+    // Bulk mode states
+    const [isBulkMode, setIsBulkMode] = useState(false);
+    const [bulkSuggestions, setBulkSuggestions] = useState<SuggestedReminder[]>([]);
+    const [bulkSaving, setBulkSaving] = useState(false);
 
     const loadReminders = async () => {
         setIsLoading(true);
@@ -82,9 +142,50 @@ export default function RemindersPage() {
         loadReminders();
     }, []);
 
+    // Auto-open bulk modal when arriving from scan/records via ?scan_id=
+    useEffect(() => {
+        if (!scanId) return;
+        const fetchAndSuggest = async () => {
+            try {
+                const res = await fetch(`/api/records/${scanId}`);
+                const data = await res.json();
+                if (!res.ok) return;
+                const generated: SuggestedReminder[] = [];
+                data.medications.forEach((med: any, mIdx: number) => {
+                    suggestTimes(med.frequency, med.timing).forEach((t, tIdx) => {
+                        generated.push({
+                            tempId: `${mIdx}-${tIdx}`,
+                            medication_id: med.id,
+                            drug_name: med.drug_name,
+                            dosage: med.dosage,
+                            time: t,
+                            label: med.instructions?.slice(0, 80) || 'Take as prescribed',
+                        });
+                    });
+                });
+                setBulkSuggestions(generated);
+                setIsBulkMode(true);
+                setIsModalOpen(true);
+            } catch (err) {
+                console.error('Failed to load scan for bulk reminders:', err);
+            }
+        };
+        fetchAndSuggest();
+    }, [scanId]);
+
+    const handleDelete = async (id: string) => {
+        setReminders(prev => prev.filter(r => r.id !== id));
+        try {
+            const res = await fetch(`/api/reminders/${id}`, { method: 'DELETE' });
+            if (!res.ok) throw new Error('Failed to delete');
+        } catch (err) {
+            console.error('Failed to delete reminder:', err);
+            loadReminders();
+        }
+    };
+
     const handleToggle = async (id: string, newState: boolean) => {
         setReminders(prev => prev.map(r => r.id === id ? { ...r, isActive: newState } : r));
-
         try {
             const response = await fetch(`/api/reminders/${id}`, {
                 method: 'PUT',
@@ -104,9 +205,7 @@ export default function RemindersPage() {
         try {
             const supabase = createClient();
             const { data: { session } } = await supabase.auth.getSession();
-            if (!session?.user) {
-                throw new Error('Not authenticated');
-            }
+            if (!session?.user) throw new Error('Not authenticated');
             const { data, error } = await supabase
                 .from('medications')
                 .select('id, drug_name, dosage')
@@ -114,9 +213,7 @@ export default function RemindersPage() {
                 .eq('is_active', true);
             if (error) throw error;
             setMedications(data || []);
-            if (data && data.length > 0) {
-                setSelectedMedId(data[0].id);
-            }
+            if (data && data.length > 0) setSelectedMedId(data[0].id);
         } catch (err: any) {
             console.error('Failed to load medications:', err);
             setModalError(err.message || 'Failed to load medications');
@@ -126,6 +223,8 @@ export default function RemindersPage() {
     };
 
     const handleOpenModal = () => {
+        setIsBulkMode(false);
+        setBulkSuggestions([]);
         setIsModalOpen(true);
         setModalError(null);
         fetchMedications();
@@ -133,6 +232,8 @@ export default function RemindersPage() {
 
     const handleCloseModal = () => {
         setIsModalOpen(false);
+        setIsBulkMode(false);
+        setBulkSuggestions([]);
         setSelectedMedId('');
         setTime('08:00');
         setLabel('');
@@ -145,26 +246,17 @@ export default function RemindersPage() {
             setModalError('All fields are required.');
             return;
         }
-
         setSubmitting(true);
         setModalError(null);
-
         try {
             const response = await fetch('/api/reminders', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    medication_id: selectedMedId,
-                    time,
-                    label: label.trim()
-                })
+                body: JSON.stringify({ medication_id: selectedMedId, time, label: label.trim() }),
             });
             const data = await response.json();
             if (!response.ok) throw new Error(data.error || 'Failed to create reminder');
-
-            // Find selected med details to append locally
             const selectedMed = medications.find(m => m.id === selectedMedId);
-
             const newReminder: Reminder = {
                 id: data.id,
                 drugName: selectedMed?.drug_name ?? 'Unknown medication',
@@ -174,12 +266,7 @@ export default function RemindersPage() {
                 instruction: data.label,
                 isActive: data.is_active,
             };
-
-            setReminders(prev => {
-                const updated = [...prev, newReminder];
-                return updated.sort((a, b) => a.time.localeCompare(b.time));
-            });
-
+            setReminders(prev => [...prev, newReminder].sort((a, b) => a.time.localeCompare(b.time)));
             handleCloseModal();
         } catch (err: any) {
             console.error('Failed to save reminder:', err);
@@ -189,19 +276,47 @@ export default function RemindersPage() {
         }
     };
 
+    const handleBulkConfirm = async () => {
+        setBulkSaving(true);
+        setModalError(null);
+        try {
+            await Promise.all(
+                bulkSuggestions.map(s =>
+                    fetch('/api/reminders', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ medication_id: s.medication_id, time: s.time, label: s.label }),
+                    })
+                )
+            );
+            handleCloseModal();
+            loadReminders();
+        } catch (err) {
+            console.error('Failed to bulk create reminders:', err);
+            setModalError('Some reminders could not be saved. Please try again.');
+        } finally {
+            setBulkSaving(false);
+        }
+    };
+
+    // Group bulk suggestions by medication for display
+    const bulkByMed = bulkSuggestions.reduce<Record<string, SuggestedReminder[]>>((acc, s) => {
+        const key = `${s.medication_id}__${s.drug_name}`;
+        if (!acc[key]) acc[key] = [];
+        acc[key].push(s);
+        return acc;
+    }, {});
+
     const morning = reminders.filter(r => r.period === 'morning');
     const afternoon = reminders.filter(r => r.period === 'afternoon');
     const evening = reminders.filter(r => r.period === 'evening');
 
-    // Instantly ask browser for permission, then fire the SW Turbo-Engine
     const handleTestNotification = async () => {
         if (!('Notification' in window)) {
             alert('Your browser does not support native notifications.');
             return;
         }
-
         const permission = await Notification.requestPermission();
-
         if (permission === 'granted' && 'serviceWorker' in navigator) {
             navigator.serviceWorker.ready.then((registration) => {
                 registration.active?.postMessage({
@@ -222,15 +337,32 @@ export default function RemindersPage() {
         if (!isModalOpen) return null;
 
         return (
-            <div className="fixed inset-0 z-55 flex items-center justify-center p-6 bg-slate-900/60 backdrop-blur-sm">
-                <div className="w-full max-w-md p-6 rounded-3xl bg-white border border-slate-200 shadow-xl animate-in fade-in zoom-in-95 duration-200 flex flex-col gap-4">
-                    <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                        <h3 className="font-poppins font-bold text-lg text-slate-900">
-                            Add Custom Reminder
-                        </h3>
+            <div className="fixed inset-0 z-55 flex items-end justify-center sm:items-center p-0 sm:p-6 bg-slate-900/60 backdrop-blur-sm">
+                <div className="w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl bg-white border border-slate-200 shadow-xl animate-in fade-in slide-in-from-bottom-4 sm:zoom-in-95 duration-200 flex flex-col max-h-[88vh]">
+
+                    {/* Drag handle (mobile) */}
+                    <div className="flex justify-center pt-3 pb-1 shrink-0 sm:hidden">
+                        <div className="w-10 h-1 rounded-full bg-slate-200" />
+                    </div>
+
+                    {/* Header */}
+                    <div className="flex items-center justify-between px-6 pt-4 pb-3 border-b border-slate-100 shrink-0">
+                        <div>
+                            <h3 className="font-poppins font-bold text-lg text-slate-900">
+                                {isBulkMode ? 'Set Reminders' : 'Add Custom Reminder'}
+                            </h3>
+                            {isBulkMode && (
+                                <p className="text-xs text-muted mt-0.5">
+                                    {bulkSuggestions.length > 0
+                                        ? `${bulkSuggestions.length} suggestion${bulkSuggestions.length !== 1 ? 's' : ''} based on your prescription`
+                                        : 'All suggestions removed'}
+                                </p>
+                            )}
+                        </div>
                         <button
                             onClick={handleCloseModal}
-                            className="text-slate-400 hover:text-slate-600 transition-colors p-1"
+                            disabled={bulkSaving || submitting}
+                            className="text-slate-400 hover:text-slate-600 transition-colors p-1 disabled:opacity-40"
                         >
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-5 h-5">
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
@@ -238,115 +370,188 @@ export default function RemindersPage() {
                         </button>
                     </div>
 
-                    {isLoadingMeds ? (
-                        <div className="flex flex-col items-center justify-center py-8 gap-2">
-                            <div className="w-8 h-8 rounded-full border-4 border-primary/20 border-t-primary animate-spin" />
-                            <span className="text-xs text-muted font-medium">Loading medications...</span>
-                        </div>
-                    ) : modalError && medications.length === 0 ? (
-                        <div className="flex flex-col gap-4">
-                            <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-red-600 text-xs font-semibold">
-                                {modalError}
-                            </div>
-                            <Button type="button" variant="secondary" size="sm" onClick={handleCloseModal}>
-                                Close
-                            </Button>
-                        </div>
-                    ) : medications.length === 0 ? (
-                        <div className="flex flex-col items-center justify-center py-6 text-center gap-4">
-                            <div className="w-12 h-12 rounded-full bg-amber-50 border border-amber-200 text-amber-500 flex items-center justify-center">
-                                <PlusIcon className="w-6 h-6" />
-                            </div>
-                            <div className="flex flex-col gap-1">
-                                <h4 className="font-bold text-sm text-slate-800">No Active Medications</h4>
-                                <p className="text-xs text-muted max-w-[280px]">
-                                    You need to log at least one medication in your records before setting an alarm.
-                                </p>
-                            </div>
-                            <Button
-                                variant="primary"
-                                size="sm"
-                                onClick={() => {
-                                    handleCloseModal();
-                                    router.push('/records/add');
-                                }}
-                            >
-                                Add Medication
-                            </Button>
-                        </div>
-                    ) : (
-                        <form onSubmit={handleSubmitReminder} className="flex flex-col gap-4">
-                            {modalError && (
-                                <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-red-600 text-xs font-semibold">
-                                    {modalError}
-                                </div>
-                            )}
-
-                            <div className="flex flex-col gap-1.5">
-                                <label className="text-xs font-bold text-slate-700">
-                                    Select Medication
-                                </label>
-                                <select
-                                    value={selectedMedId}
-                                    onChange={(e) => setSelectedMedId(e.target.value)}
-                                    required
-                                    className="h-11 px-3 rounded-xl bg-slate-50 border border-slate-200 focus:border-primary focus:ring-2 focus:ring-primary/10 text-slate-800 text-sm outline-none transition-all cursor-pointer"
-                                >
-                                    {medications.map((med) => (
-                                        <option key={med.id} value={med.id}>
-                                            {med.drug_name} ({med.dosage})
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
-
-                            <div className="flex flex-col gap-1.5">
-                                <label className="text-xs font-bold text-slate-700">
-                                    Reminder Time
-                                </label>
-                                <input
-                                    type="time"
-                                    value={time}
-                                    onChange={(e) => setTime(e.target.value)}
-                                    required
-                                    className="w-full h-11 px-3 rounded-xl bg-slate-50 border border-slate-200 focus:border-primary focus:ring-2 focus:ring-primary/10 text-slate-800 text-sm outline-none transition-all"
-                                />
+                    {/* Body */}
+                    {isBulkMode ? (
+                        <>
+                            {/* Bulk suggestions list */}
+                            <div className="flex-1 overflow-y-auto px-6 py-4 flex flex-col gap-5">
+                                {bulkSuggestions.length === 0 ? (
+                                    <p className="text-sm text-muted text-center py-6">
+                                        No suggestions left. Add reminders manually using the + button.
+                                    </p>
+                                ) : (
+                                    Object.entries(bulkByMed).map(([key, rows]) => {
+                                        const drugName = rows[0].drug_name;
+                                        const dosage = rows[0].dosage;
+                                        return (
+                                            <div key={key}>
+                                                <div className="flex items-center gap-2 mb-3">
+                                                    <span className="text-xs font-bold text-ink">{drugName}</span>
+                                                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-blue-50 text-primary border border-blue-100">
+                                                        {dosage}
+                                                    </span>
+                                                </div>
+                                                <div className="flex flex-col gap-2">
+                                                    {rows.map(s => (
+                                                        <div
+                                                            key={s.tempId}
+                                                            className="bg-white border border-slate-200 rounded-2xl px-4 py-3 flex flex-col gap-2"
+                                                        >
+                                                            {/* Time row */}
+                                                            <div className="flex items-center gap-3">
+                                                                <input
+                                                                    type="time"
+                                                                    value={s.time}
+                                                                    disabled={bulkSaving}
+                                                                    onChange={e =>
+                                                                        setBulkSuggestions(prev =>
+                                                                            prev.map(r => r.tempId === s.tempId ? { ...r, time: e.target.value } : r)
+                                                                        )
+                                                                    }
+                                                                    className="flex-1 h-10 px-3 rounded-xl bg-slate-50 border border-slate-200 focus:border-primary focus:ring-2 focus:ring-primary/10 text-slate-800 text-sm font-semibold outline-none transition-all"
+                                                                />
+                                                                <button
+                                                                    type="button"
+                                                                    disabled={bulkSaving}
+                                                                    onClick={() => setBulkSuggestions(prev => prev.filter(r => r.tempId !== s.tempId))}
+                                                                    className="shrink-0 text-slate-300 hover:text-danger transition-colors p-1 disabled:opacity-40"
+                                                                >
+                                                                    <TrashIcon className="w-5 h-5" />
+                                                                </button>
+                                                            </div>
+                                                            {/* Instruction label */}
+                                                            <p className="text-xs text-muted leading-snug px-1">
+                                                                {s.label}
+                                                            </p>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        );
+                                    })
+                                )}
                             </div>
 
-                            <div className="flex flex-col gap-1.5">
-                                <label className="text-xs font-bold text-slate-700">
-                                    Instruction Label
-                                </label>
-                                <input
-                                    type="text"
-                                    value={label}
-                                    onChange={(e) => setLabel(e.target.value)}
-                                    placeholder="e.g. Take with water after breakfast"
-                                    required
-                                    className="h-11 px-4 rounded-xl bg-slate-50 border border-slate-200 focus:border-primary focus:ring-2 focus:ring-primary/10 text-slate-800 placeholder-slate-400 text-sm outline-none transition-all"
-                                />
-                            </div>
-
-                            <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
+                            {/* Bulk footer */}
+                            <div className="px-6 pt-3 pb-6 border-t border-slate-100 shrink-0 flex flex-col gap-2">
+                                {modalError && (
+                                    <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-red-600 text-xs font-semibold">
+                                        {modalError}
+                                    </div>
+                                )}
                                 <Button
+                                    variant="primary"
+                                    size="lg"
+                                    className="w-full"
+                                    onClick={handleBulkConfirm}
+                                    isLoading={bulkSaving}
+                                    disabled={bulkSuggestions.length === 0 || bulkSaving}
+                                    iconLeft={<BellIcon className="w-5 h-5" weight="fill" />}
+                                >
+                                    {bulkSuggestions.length === 0
+                                        ? 'No suggestions left'
+                                        : `Confirm ${bulkSuggestions.length} Reminder${bulkSuggestions.length !== 1 ? 's' : ''}`}
+                                </Button>
+                                <button
                                     type="button"
-                                    variant="secondary"
-                                    size="sm"
                                     onClick={handleCloseModal}
-                                    disabled={submitting}
+                                    disabled={bulkSaving}
+                                    className="text-sm font-semibold text-muted hover:text-ink transition-colors py-2 disabled:opacity-40"
                                 >
                                     Cancel
-                                </Button>
-                                <Button
-                                    type="submit"
-                                    variant="primary"
-                                    size="sm"
-                                    isLoading={submitting}
-                                >
-                                    Save Reminder
-                                </Button>
+                                </button>
                             </div>
-                        </form>
+                        </>
+                    ) : (
+                        /* Single-add form (unchanged) */
+                        <div className="flex-1 overflow-y-auto px-6 py-4">
+                            {isLoadingMeds ? (
+                                <div className="flex flex-col items-center justify-center py-8 gap-2">
+                                    <div className="w-8 h-8 rounded-full border-4 border-primary/20 border-t-primary animate-spin" />
+                                    <span className="text-xs text-muted font-medium">Loading medications...</span>
+                                </div>
+                            ) : modalError && medications.length === 0 ? (
+                                <div className="flex flex-col gap-4">
+                                    <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-red-600 text-xs font-semibold">
+                                        {modalError}
+                                    </div>
+                                    <Button type="button" variant="secondary" size="sm" onClick={handleCloseModal}>
+                                        Close
+                                    </Button>
+                                </div>
+                            ) : medications.length === 0 ? (
+                                <div className="flex flex-col items-center justify-center py-6 text-center gap-4">
+                                    <div className="w-12 h-12 rounded-full bg-amber-50 border border-amber-200 text-amber-500 flex items-center justify-center">
+                                        <PlusIcon className="w-6 h-6" />
+                                    </div>
+                                    <div className="flex flex-col gap-1">
+                                        <h4 className="font-bold text-sm text-slate-800">No Active Medications</h4>
+                                        <p className="text-xs text-muted max-w-[280px]">
+                                            You need to log at least one medication in your records before setting an alarm.
+                                        </p>
+                                    </div>
+                                    <Button
+                                        variant="primary"
+                                        size="sm"
+                                        onClick={() => { handleCloseModal(); router.push('/records/add'); }}
+                                    >
+                                        Add Medication
+                                    </Button>
+                                </div>
+                            ) : (
+                                <form onSubmit={handleSubmitReminder} className="flex flex-col gap-4">
+                                    {modalError && (
+                                        <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-red-600 text-xs font-semibold">
+                                            {modalError}
+                                        </div>
+                                    )}
+                                    <div className="flex flex-col gap-1.5">
+                                        <label className="text-xs font-bold text-slate-700">Select Medication</label>
+                                        <select
+                                            value={selectedMedId}
+                                            onChange={(e) => setSelectedMedId(e.target.value)}
+                                            required
+                                            className="h-11 px-3 rounded-xl bg-slate-50 border border-slate-200 focus:border-primary focus:ring-2 focus:ring-primary/10 text-slate-800 text-sm outline-none transition-all cursor-pointer"
+                                        >
+                                            {medications.map((med) => (
+                                                <option key={med.id} value={med.id}>
+                                                    {med.drug_name} ({med.dosage})
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    <div className="flex flex-col gap-1.5">
+                                        <label className="text-xs font-bold text-slate-700">Reminder Time</label>
+                                        <input
+                                            type="time"
+                                            value={time}
+                                            onChange={(e) => setTime(e.target.value)}
+                                            required
+                                            className="w-full h-11 px-3 rounded-xl bg-slate-50 border border-slate-200 focus:border-primary focus:ring-2 focus:ring-primary/10 text-slate-800 text-sm outline-none transition-all"
+                                        />
+                                    </div>
+                                    <div className="flex flex-col gap-1.5">
+                                        <label className="text-xs font-bold text-slate-700">Instruction Label</label>
+                                        <input
+                                            type="text"
+                                            value={label}
+                                            onChange={(e) => setLabel(e.target.value)}
+                                            placeholder="e.g. Take with water after breakfast"
+                                            required
+                                            className="h-11 px-4 rounded-xl bg-slate-50 border border-slate-200 focus:border-primary focus:ring-2 focus:ring-primary/10 text-slate-800 placeholder-slate-400 text-sm outline-none transition-all"
+                                        />
+                                    </div>
+                                    <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
+                                        <Button type="button" variant="secondary" size="sm" onClick={handleCloseModal} disabled={submitting}>
+                                            Cancel
+                                        </Button>
+                                        <Button type="submit" variant="primary" size="sm" isLoading={submitting}>
+                                            Save Reminder
+                                        </Button>
+                                    </div>
+                                </form>
+                            )}
+                        </div>
                     )}
                 </div>
             </div>
@@ -404,7 +609,7 @@ export default function RemindersPage() {
                         <h2 className="text-sm uppercase tracking-wider">{t.remindersPage.morning}</h2>
                     </div>
                     {morning.map(r => (
-                        <ReminderCard key={r.id} {...r} onToggle={(state) => handleToggle(r.id, state)} />
+                        <ReminderCard key={r.id} {...r} onToggle={(state) => handleToggle(r.id, state)} onDelete={() => handleDelete(r.id)} />
                     ))}
                 </section>
             )}
@@ -416,7 +621,7 @@ export default function RemindersPage() {
                         <h2 className="text-sm uppercase tracking-wider">{t.remindersPage.afternoon}</h2>
                     </div>
                     {afternoon.map(r => (
-                        <ReminderCard key={r.id} {...r} onToggle={(state) => handleToggle(r.id, state)} />
+                        <ReminderCard key={r.id} {...r} onToggle={(state) => handleToggle(r.id, state)} onDelete={() => handleDelete(r.id)} />
                     ))}
                 </section>
             )}
@@ -428,12 +633,24 @@ export default function RemindersPage() {
                         <h2 className="text-sm uppercase tracking-wider">{t.remindersPage.evening}</h2>
                     </div>
                     {evening.map(r => (
-                        <ReminderCard key={r.id} {...r} onToggle={(state) => handleToggle(r.id, state)} />
+                        <ReminderCard key={r.id} {...r} onToggle={(state) => handleToggle(r.id, state)} onDelete={() => handleDelete(r.id)} />
                     ))}
                 </section>
             )}
 
             {renderModal()}
         </div>
+    );
+}
+
+export default function RemindersPage() {
+    return (
+        <Suspense fallback={
+            <div className="w-full h-full flex items-center justify-center min-h-[50vh]">
+                <div className="w-8 h-8 rounded-full border-4 border-primary/20 border-t-primary animate-spin" />
+            </div>
+        }>
+            <RemindersInner />
+        </Suspense>
     );
 }

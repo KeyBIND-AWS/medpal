@@ -73,7 +73,7 @@ export default function ResultsPage() {
                     variant="primary"
                     size="lg"
                     className="w-full"
-                    onClick={() => router.push('/reminders')}
+                    onClick={() => router.push(`/reminders?scan_id=${Array.isArray(params.id) ? params.id[0] : params.id}`)}
                     iconLeft={<BellIcon className="w-5 h-5" weight="fill" />}
                 >
                     {t.results.setReminders}
