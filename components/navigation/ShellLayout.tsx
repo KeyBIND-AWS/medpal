@@ -26,8 +26,8 @@ export function ShellLayout({ children }: { children: React.ReactNode }) {
             </div>
 
             {/* MAIN CONTENT AREA */}
-            <main className="flex-1 h-full overflow-y-auto bg-white relative flex justify-center pb-16 md:pb-0">
-                <div className="w-full md:max-w-120 min-h-full md:border-x md:border-none flex flex-col">
+            <main className="flex-1 h-full overflow-y-auto bg-white relative flex justify-center pb-[calc(4rem+env(safe-area-inset-bottom))] md:pb-0">
+                <div className="w-full md:max-w-120 h-full md:border-x md:border-none flex flex-col">
 
                     {/* MOBILE/APP TOPBAR */}
                     <div className="sticky top-0 z-40">
@@ -43,7 +43,7 @@ export function ShellLayout({ children }: { children: React.ReactNode }) {
             </main>
 
             {/* MOBILE: Bottom Navigation */}
-            <div className="md:hidden fixed bottom-0 w-full bg-white border-t border-slate-200 rounded-t-2xl shadow-[0_-4px_20px_rgba(0,0,0,0.08)] z-50">
+            <div className="md:hidden fixed bottom-0 w-full bg-white border-t border-slate-200 rounded-t-2xl shadow-[0_-4px_20px_rgba(0,0,0,0.08)] z-50 pb-[env(safe-area-inset-bottom)]">
                 <BottomNav />
             </div>
         </div>
