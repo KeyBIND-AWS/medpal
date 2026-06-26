@@ -80,7 +80,7 @@ export default function SettingsPage() {
     }
 
     initSettings()
-  }, [router, supabase])
+  }, [router])
 
   const handleLanguageChange = async (newLang: Language) => {
     if (!user) return
