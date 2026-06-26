@@ -90,7 +90,7 @@ export default function ScanPage() {
   };
 
   return (
-      <div className="flex flex-col w-full h-full min-h-[calc(100vh-8rem)] p-4 md:p-6 gap-5">
+      <div className="flex flex-col w-full h-full p-4 md:p-6 gap-5">
 
         <div className="w-full bg-slate-200/80 p-1 rounded-2xl flex items-center gap-1 shrink-0">
           <button
