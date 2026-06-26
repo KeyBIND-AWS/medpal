@@ -15,36 +15,58 @@ export default function RecordDetailPage() {
     const { t } = useTranslation();
 
     const [recordData, setRecordData] = useState<ScanResult | null>(null);
+    const [error, setError] = useState<string | null>(null);
+    const [deleting, setDeleting] = useState(false);
 
-    // MOCK DATA FETCH (Swap this for GET /api/records/:id later)
     useEffect(() => {
-        const timer = setTimeout(() => {
-            setRecordData({
-                id: params.id as string,
-                readable: true,
-                summary: "This is a saved prescription for blood pressure and cholesterol management.",
-                created_at: new Date().toISOString(),
-                medications: [
-                    {
-                        drug_name: "Amlodipine",
-                        dosage: "5mg",
-                        frequency: "Once daily",
-                        purpose: "High blood pressure",
-                        instructions: "1 tablet every breakfast"
-                    },
-                    {
-                        drug_name: "Atorvastatin",
-                        dosage: "20mg",
-                        frequency: "Once daily",
-                        purpose: "Cholesterol",
-                        instructions: "1 tablet before bed"
-                    }
-                ]
-            });
-        }, 400);
+        const loadRecord = async () => {
+            setError(null);
+            try {
+                const response = await fetch(`/api/records/${params.id}`);
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.error || 'Failed to load record');
+                setRecordData(data as ScanResult);
+            } catch (err: any) {
+                console.error('Failed to load record:', err);
+                setError(err.message || 'Failed to load record');
+            }
+        };
 
-        return () => clearTimeout(timer);
+        if (params.id) {
+            loadRecord();
+        }
     }, [params.id]);
+
+    const handleDelete = async () => {
+        if (!confirm('Are you sure you want to delete this record?')) return;
+        setDeleting(true);
+        try {
+            const response = await fetch(`/api/records/${params.id}`, {
+                method: 'DELETE'
+            });
+            if (!response.ok) {
+                const data = await response.json();
+                throw new Error(data.error || 'Failed to delete record');
+            }
+            router.push('/records');
+        } catch (err: any) {
+            console.error('Failed to delete record:', err);
+            alert(err.message || 'Failed to delete record');
+        } finally {
+            setDeleting(false);
+        }
+    };
+
+    if (error) {
+        return (
+            <div className="w-full h-full min-h-[50vh] flex flex-col items-center justify-center px-6 text-center gap-4">
+                <p className="text-sm text-slate-500 font-semibold">{error}</p>
+                <Button variant="secondary" size="sm" onClick={() => router.push('/records')}>
+                    Back to Records
+                </Button>
+            </div>
+        );
+    }
 
     if (!recordData) {
         return (
@@ -96,11 +118,9 @@ export default function RecordDetailPage() {
                 <Button
                     variant="secondary"
                     size="lg"
+                    isLoading={deleting}
                     className="w-full text-rose-600 hover:bg-rose-50 hover:border-rose-200 transition-colors"
-                    onClick={() => {
-                        // Mock delete action
-                        router.push('/records');
-                    }}
+                    onClick={handleDelete}
                     iconLeft={<TrashIcon className="w-5 h-5" weight="fill" />}
                 >
                     Delete Record
