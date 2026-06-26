@@ -27,15 +27,20 @@ function getLang(language: string) {
 
 // ─── Prescription Reading ───────────────────────────────────────────────
 
-function getPrescriptionSystemPrompt(language: string): string {
+function getPrescriptionSystemPrompt(language: string, symptoms?: string): string {
   const lang = getLang(language);
+
+  const symptomBlock =
+    symptoms && symptoms.trim()
+      ? `\n## Patient's Stated Symptoms / Condition\nThe patient described their reason for this prescription as: "${symptoms.trim()}".\nUse this ONLY as a safety cross-check for the "mismatch_warning" field below. Do NOT let it change what is actually written on the prescription.\n`
+      : '';
 
   return `You are a medical prescription reader for HatidDok, a healthcare app serving patients in Mindanao, Philippines. Your job is to read a photo of a handwritten or printed prescription and extract structured medication information.
 
 ${lang.instruction}
-
+${symptomBlock}
 ## Your Task
-Analyze the prescription image and extract each medication prescribed. Return a JSON object matching the exact schema below.
+Analyze the prescription image and extract EVERY medication prescribed (there are often several — read the whole document from top to bottom and do not stop at the first one). Return a JSON object matching the exact schema below.
 
 ## Rules
 1. READ CAREFULLY. Filipino prescriptions often use abbreviated medical notation (e.g., "tab" = tablet, "cap" = capsule, "OD" = once daily, "BID" = twice daily, "TID" = three times daily, "QID" = four times daily, "PRN" = as needed, "PC" = after meals, "AC" = before meals, "HS" = at bedtime, "SL" = sublingual, "gtt" = drops, "supp" = suppository, "sig" = directions).
@@ -43,7 +48,9 @@ Analyze the prescription image and extract each medication prescribed. Return a 
 3. For each medication, resolve the generic name if you can identify the drug. Common Philippine brands: Biogesic (paracetamol), Neozep (phenylephrine+chlorphenamine+paracetamol), Solmux (carbocisteine), Mefenamic (mefenamic acid), Amoxil (amoxicillin), Alaxan (ibuprofen+paracetamol), Decolgen (phenylpropanolamine+chlorphenamine+paracetamol).
 4. Provide purpose, instructions, and warnings in ${lang.name} using plain, everyday language.
 5. Check for obvious drug-drug interactions among the prescribed medications.
-6. Always include the safety disclaimer.
+6. For EACH medication, include a "confidence" of how sure you are you read it correctly: "high", "medium", or "low".
+7. SAFETY CROSS-CHECK: If the patient's stated symptoms/condition are given above, compare them against the prescribed medications. If a medication clearly does NOT match the stated condition (e.g. the patient says "cold"/"sip-on" but a medication is a maintenance drug for high blood pressure or diabetes), set "mismatch_warning" to a short, plain-language caution in ${lang.name} advising them to double-check with their pharmacist or doctor. This is a SAFETY PROMPT, NOT a diagnosis — never tell them to stop or change a medication. If everything plausibly matches, or no symptoms were provided, set "mismatch_warning" to null.
+8. Always include the safety disclaimer.
 
 ## Illegible Handling
 - If the ENTIRE prescription is unreadable, set "readable" to false, provide a helpful summary explaining what you can and cannot see, and return an empty medications array.
@@ -54,6 +61,7 @@ Analyze the prescription image and extract each medication prescribed. Return a 
 {
   "readable": boolean,
   "summary": "string — brief overall summary of the prescription in ${lang.name}",
+  "mismatch_warning": "string | null — see rule 7; a caution in ${lang.name} if the medications don't match the patient's stated symptoms, otherwise null",
   "medications": [
     {
       "drug_name": "string — brand name exactly as written on the prescription",
@@ -64,7 +72,8 @@ Analyze the prescription image and extract each medication prescribed. Return a 
       "duration": "string | null — e.g., '7 days', '1 month', 'Continuous', or null if not specified",
       "purpose": "string — what this medicine is for, in ${lang.name}, plain language",
       "instructions": "string — how to take it, in ${lang.name}, plain language",
-      "warnings": "string | null — side effects, food/drug interactions, precautions in ${lang.name}"
+      "warnings": "string | null — side effects, food/drug interactions, precautions in ${lang.name}",
+      "confidence": "high | medium | low — how sure you are you read this medication correctly"
     }
   ],
   "interaction_warnings": [
@@ -222,10 +231,10 @@ Respond with ONLY the JSON object. No markdown, no code blocks, no extra text.`;
 
 // ─── Public API ─────────────────────────────────────────────────────────
 
-export function getSystemPrompt(type: ScanType, language: string): string {
+export function getSystemPrompt(type: ScanType, language: string, symptoms?: string): string {
   switch (type) {
     case 'prescription':
-      return getPrescriptionSystemPrompt(language);
+      return getPrescriptionSystemPrompt(language, symptoms);
     case 'lab_result':
       return getLabResultSystemPrompt(language);
   }

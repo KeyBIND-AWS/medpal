@@ -1,6 +1,33 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
 import { analyzePrescriptionImage } from '@/lib/prescription';
+import { analyzeImage } from '@/lib/bedrock';
+import { preprocessScanImage } from '@/lib/image-preprocess';
+
+/**
+ * Run the scan analysis. Primary engine = Bedrock Claude vision (reads the whole
+ * document, handles multiple medications, accepts the normalized JPEG). If the
+ * vision call returns unparseable JSON, fall back to the Textract + Comprehend
+ * Medical pipeline so we always return *something* structured.
+ */
+async function analyzeScan(
+  cleanImage: string,
+  type: 'prescription' | 'lab_result',
+  language: string,
+  symptoms?: string,
+): Promise<any> {
+  const visionStr = await analyzeImage(cleanImage, type, language, symptoms);
+  try {
+    let s = visionStr.trim();
+    if (s.startsWith('```')) {
+      s = s.replace(/^```json\s*/i, '').replace(/```\s*$/, '').trim();
+    }
+    return JSON.parse(s);
+  } catch (parseErr) {
+    console.error('Bedrock vision JSON parse failed; falling back to Textract:', parseErr);
+    return analyzePrescriptionImage(cleanImage, language);
+  }
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -10,12 +37,12 @@ export async function POST(req: NextRequest) {
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     if (authError || !user) {
       return NextResponse.json(
-        { error: 'Unauthorized user access token.', code: '401' }, 
+        { error: 'Unauthorized user access token.', code: '401' },
         { status: 401 }
       );
     }
 
-    const { image, type, language } = await req.json();
+    const { image, type, language, symptoms } = await req.json();
 
     if (!image || !type || !language) {
       return NextResponse.json(
@@ -24,10 +51,15 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 2. Upload image to Supabase Storage Bucket ('scans')
-    const imageBuffer = Buffer.from(image, 'base64');
-    const fileExtension = 'jpg'; 
-    const fileName = `${user.id}/${Date.now()}.${fileExtension}`;
+    // 2. Normalize the image to a clean, upright JPEG. This makes WebP/HEIC/PNG
+    //    gallery uploads work (Textract only accepts JPEG/PNG/PDF/TIFF, and Claude
+    //    vision is happiest with JPEG), fixes EXIF orientation, and returns BARE
+    //    base64 (no data: prefix) so the storage upload below isn't corrupted.
+    const cleanImage = await preprocessScanImage(image);
+
+    // 3. Upload the normalized image to Supabase Storage Bucket ('scans')
+    const imageBuffer = Buffer.from(cleanImage, 'base64');
+    const fileName = `${user.id}/${Date.now()}.jpg`;
 
     const { data: storageData, error: storageError } = await supabase.storage
       .from('scans')
@@ -44,23 +76,23 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 3. Request vision analysis from AWS Textract/Comprehend Medical with a 30s timeout protection
+    // 4. Analyze (Bedrock vision primary, Textract fallback) with a 30s timeout
     let aiPayload: any;
     try {
       aiPayload = await Promise.race([
-        analyzePrescriptionImage(image, language),
-        new Promise<never>((_, reject) => 
-          setTimeout(() => reject(new Error('Textract processing gateway timeout.')), 30000)
+        analyzeScan(cleanImage, type, language, symptoms),
+        new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error('AI processing gateway timeout.')), 30000)
         )
       ]);
     } catch (timeoutErr: any) {
       return NextResponse.json(
-        { error: timeoutErr.message || 'AI engine timeout.', code: 'TEXTRACT_TIMEOUT' },
+        { error: timeoutErr.message || 'AI engine timeout.', code: 'AI_TIMEOUT' },
         { status: 504 }
       );
     }
 
-    // 4. Handle Illegible Handwriting Fallback Path
+    // 5. Handle Illegible Handwriting Fallback Path
     if (!aiPayload.readable) {
       return NextResponse.json(
         { error: "We couldn't read this -- ask your pharmacist.", code: 'UNREADABLE' },
@@ -68,14 +100,21 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 5. Save metadata to scans table
+    // 6. Save metadata to scans table. We stash the user's symptoms (and keep the
+    //    model's mismatch_warning) inside the ai_response JSONB so no schema
+    //    migration is needed — the results page reads them from ai_response.
+    const aiResponseToStore = {
+      ...aiPayload,
+      symptoms: symptoms && symptoms.trim() ? symptoms.trim() : null,
+    };
+
     const { data: scanRow, error: scanDbError } = await supabase
       .from('scans')
       .insert({
         user_id: user.id,
         type: type,
         image_url: storageData.path,
-        ai_response: aiPayload,
+        ai_response: aiResponseToStore,
         summary: aiPayload.summary,
         language: language
       })
@@ -84,7 +123,7 @@ export async function POST(req: NextRequest) {
 
     if (scanDbError) throw scanDbError;
 
-    // 6. Map and insert individual records into medications table
+    // 7. Map and insert individual records into medications table
     if (aiPayload.medications && Array.isArray(aiPayload.medications)) {
       const formattedMeds = aiPayload.medications.map((med: any) => ({
         user_id: user.id,

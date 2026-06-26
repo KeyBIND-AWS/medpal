@@ -33,6 +33,8 @@ export const dictionaries: Record<Language, Dictionary> = {
             saveToRecords: 'Save to Records',
             setReminders: 'Set Reminders',
             saving: 'Saving...',
+            listen: 'Listen',
+            stop: 'Stop',
         },
         recordsList: {
             title: 'My Records',
@@ -87,6 +89,8 @@ export const dictionaries: Record<Language, Dictionary> = {
             saveToRecords: 'I-save sa Rekord',
             setReminders: 'Magtakda ng Paalala',
             saving: 'Sini-save...',
+            listen: 'Pakinggan',
+            stop: 'Itigil',
         },
         recordsList: {
             title: 'Mga Rekord',
@@ -141,6 +145,8 @@ export const dictionaries: Record<Language, Dictionary> = {
             saveToRecords: 'I-save sa Records',
             setReminders: 'Pagbutang og Reminders',
             saving: 'Gina-save...',
+            listen: 'Paminawa',
+            stop: 'Hunong',
         },
         recordsList: {
             title: 'Akong Records',

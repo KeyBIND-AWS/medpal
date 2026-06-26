@@ -5,7 +5,7 @@ import {
 import { getSystemPrompt, getScanUserPrompt, getChatSystemPrompt } from './prompts';
 
 const MODEL_ID =
-  process.env.BEDROCK_MODEL_ID || 'anthropic.claude-3-5-sonnet-20241022-v2:0';
+  process.env.BEDROCK_MODEL_ID || 'us.anthropic.claude-haiku-4-5-20251001-v1:0';
 
 const TIMEOUT_MS = 30_000;
 
@@ -125,6 +125,7 @@ export async function analyzeImage(
   imageBase64: string,
   type: 'prescription' | 'lab_result',
   language: string,
+  symptoms?: string,
 ): Promise<string> {
   const client = createClient();
 
@@ -134,7 +135,7 @@ export async function analyzeImage(
   }
 
   const base64Data = imageBase64.replace(/^data:image\/\w+;base64,/, '');
-  const system = getSystemPrompt(type, language);
+  const system = getSystemPrompt(type, language, symptoms);
   const userPrompt = getScanUserPrompt(type, language);
 
   try {

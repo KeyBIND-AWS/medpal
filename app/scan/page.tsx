@@ -1,12 +1,20 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslation } from '@/contexts/LanguageContext';
 import { CameraCapture } from '@/components/camera/CameraCapture';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
-import { ArrowsClockwiseIcon, SparkleIcon } from '@phosphor-icons/react';
+import { ArrowsClockwiseIcon, SparkleIcon, MicrophoneIcon } from '@phosphor-icons/react';
+
+// Optional symptom-context copy per language (used for the anti-hallucination cross-check)
+const SYMPTOM_COPY: Record<string, { label: string; placeholder: string }> = {
+  bisaya: { label: 'Unsa imong gibati o sakit? (opsyonal)', placeholder: 'Pananglitan: sip-on, ubo, hilanat...' },
+  filipino: { label: 'Ano ang nararamdaman mo? (opsyonal)', placeholder: 'Halimbawa: sipon, ubo, lagnat...' },
+  english: { label: 'What are your symptoms? (optional)', placeholder: 'e.g. cold, cough, fever...' },
+};
+const SPEECH_LANG: Record<string, string> = { bisaya: 'fil-PH', filipino: 'fil-PH', english: 'en-US' };
 
 type ScanType = 'prescription' | 'lab_result';
 
@@ -17,6 +25,39 @@ export default function ScanPage() {
   const [scanType, setScanType] = useState<ScanType>('prescription');
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [symptoms, setSymptoms] = useState('');
+  const [listening, setListening] = useState(false);
+  const [speechSupported, setSpeechSupported] = useState(false);
+  const recognitionRef = useRef<any>(null);
+
+  useEffect(() => {
+    const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    setSpeechSupported(!!SR);
+  }, []);
+
+  const toggleListening = () => {
+    const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SR) return;
+    if (listening) {
+      recognitionRef.current?.stop();
+      return;
+    }
+    const rec = new SR();
+    rec.lang = SPEECH_LANG[language] || 'fil-PH';
+    rec.interimResults = false;
+    rec.maxAlternatives = 1;
+    rec.onresult = (e: any) => {
+      const transcript = Array.from(e.results).map((r: any) => r[0].transcript).join(' ');
+      setSymptoms((prev) => (prev ? prev.trim() + ' ' : '') + transcript);
+    };
+    rec.onend = () => setListening(false);
+    rec.onerror = () => setListening(false);
+    recognitionRef.current = rec;
+    setListening(true);
+    rec.start();
+  };
+
+  const symptomCopy = SYMPTOM_COPY[language] || SYMPTOM_COPY.bisaya;
 
   const handleProceed = async () => {
     if (!capturedImage) return;
@@ -30,7 +71,8 @@ export default function ScanPage() {
         body: JSON.stringify({
           image: capturedImage,
           type: scanType,
-          language: language // Tells Claude to output in Bisaya/Filipino
+          language: language, // Tells Claude to output in Bisaya/Filipino
+          symptoms: symptoms.trim() || undefined, // optional anti-hallucination cross-check
         }),
       });
 
@@ -117,7 +159,40 @@ export default function ScanPage() {
         </div>
 
         {capturedImage && !isAnalyzing && (
-            <div className="w-full animate-in fade-in slide-in-from-bottom-2 duration-200 shrink-0">
+            <div className="w-full flex flex-col gap-3 animate-in fade-in slide-in-from-bottom-2 duration-200 shrink-0">
+              {/* Optional symptom / condition context — powers the mismatch safety check */}
+              {scanType === 'prescription' && (
+                <div className="w-full flex flex-col gap-1.5">
+                  <label htmlFor="symptoms" className="text-xs font-bold text-muted px-1">
+                    {symptomCopy.label}
+                  </label>
+                  <div className="relative">
+                    <textarea
+                        id="symptoms"
+                        value={symptoms}
+                        onChange={(e) => setSymptoms(e.target.value)}
+                        placeholder={symptomCopy.placeholder}
+                        rows={2}
+                        className="w-full rounded-2xl border border-slate-200 bg-white p-3 pr-12 text-sm text-ink resize-none focus:outline-none focus:ring-2 focus:ring-primary/30"
+                    />
+                    {speechSupported && (
+                        <button
+                            type="button"
+                            onClick={toggleListening}
+                            aria-pressed={listening}
+                            className={`absolute right-2 top-2 w-9 h-9 rounded-full flex items-center justify-center transition-colors ${
+                                listening
+                                    ? 'bg-rose-500 text-white animate-pulse'
+                                    : 'bg-slate-100 text-muted hover:bg-slate-200'
+                            }`}
+                        >
+                          <MicrophoneIcon className="w-5 h-5" weight={listening ? 'fill' : 'regular'} />
+                        </button>
+                    )}
+                  </div>
+                </div>
+              )}
+
               <Button
                   variant="primary"
                   size="lg"

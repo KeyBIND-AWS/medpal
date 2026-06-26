@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { Card } from './Card';
+import { ListenButton } from './ListenButton';
 import { useTranslation } from '@/contexts/LanguageContext';
 import { MedicationRecord } from '@/types/schema';
 import { CalendarIcon, WarningIcon, InfoIcon } from '@phosphor-icons/react';
@@ -98,7 +99,10 @@ export function MedicationCard({ medication }: { medication: MedicationRecord })
 
             {/* Instructions */}
             <div className="flex flex-col gap-1 pt-1">
-                <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400">Directions</span>
+                <div className="flex items-center justify-between">
+                    <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400">Directions</span>
+                    <ListenButton compact text={medication.instructions} />
+                </div>
                 <p className="text-sm text-slate-600 leading-relaxed font-medium">
                     {medication.instructions}
                 </p>

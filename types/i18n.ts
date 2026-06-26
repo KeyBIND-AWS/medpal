@@ -32,6 +32,8 @@ export type Dictionary = {
         saveToRecords: string;
         setReminders: string;
         saving: string;
+        listen: string;
+        stop: string;
     };
 
     recordsList: {
