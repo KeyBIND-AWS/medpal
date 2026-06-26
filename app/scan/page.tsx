@@ -48,7 +48,7 @@ export default function ScanPage() {
   };
 
   return (
-      <div className="flex flex-col w-full h-full p-4 md:p-6 gap-5">
+      <div className="flex flex-col w-full h-full p-4 md:p-6 gap-5 min-h-0 overflow-hidden">
 
         <div className="w-full bg-slate-200/80 p-1 rounded-2xl flex items-center gap-1 shrink-0">
           <button
@@ -87,7 +87,7 @@ export default function ScanPage() {
                   {t.scanner.analyzing}
                 </h3>
                 <p className="text-xs text-muted max-w-[200px]">
-                  AWS Bedrock Claude 3.5 is translating medical jargon into plain language...
+                  Amazon Textract and Comprehend Medical are extracting your prescription data...
                 </p>
               </Card>
           ) : !capturedImage ? (

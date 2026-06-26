@@ -2,8 +2,7 @@ import {
     CameraIcon,
     FileTextIcon,
     BellIcon,
-    GearSixIcon,
-    ChatCircleDotsIcon
+    GearSixIcon
 } from '@phosphor-icons/react';
 
 export type NavNameKey = 'scan' | 'records' | 'reminders' | 'settings' | 'chat';
@@ -23,11 +22,6 @@ export const NAV_ITEMS: { nameKey: NavNameKey; href: string; icon: any }[] = [
         nameKey: 'reminders',
         href: '/reminders',
         icon: BellIcon,
-    },
-    {
-        nameKey: 'chat',
-        href: '/chat',
-        icon: ChatCircleDotsIcon
     },
     {
         nameKey: 'settings',
