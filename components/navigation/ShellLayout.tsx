@@ -43,7 +43,7 @@ export function ShellLayout({ children }: { children: React.ReactNode }) {
             </main>
 
             {/* MOBILE: Bottom Navigation */}
-            <div className="md:hidden fixed bottom-0 w-full bg-white border border-slate-200 rounded-t-2xl shadow-[0_-4px_20px_rgba(0,0,0,0.08)] z-50">
+            <div className="md:hidden fixed bottom-0 w-full bg-white border-t border-slate-200 rounded-t-2xl shadow-[0_-4px_20px_rgba(0,0,0,0.08)] z-50">
                 <BottomNav />
             </div>
         </div>

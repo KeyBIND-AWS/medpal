@@ -10,7 +10,7 @@ export function BottomNav() {
     const { t } = useTranslation();
 
     return (
-        <nav className="h-16 w-full px-4 flex items-center justify-around bg-white rounded-t-2xl">
+        <nav className="h-16 w-full px-4 flex items-center justify-around bg-white">
             {NAV_ITEMS.map((item) => {
                 const Icon = item.icon;
                 const isActive = pathname.startsWith(item.href);
