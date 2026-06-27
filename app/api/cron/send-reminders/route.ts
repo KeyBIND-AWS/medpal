@@ -36,7 +36,7 @@ function normalizeHHMM(t: unknown): string {
   return m ? `${m[1].padStart(2, '0')}:${m[2]}` : String(t);
 }
 
-export async function POST(request: NextRequest) {
+async function handle(request: NextRequest) {
   // 1. Shared-secret gate (external cron / scheduler must send this header).
   const authHeader = request.headers.get('authorization');
   if (!CRON_SECRET || authHeader !== `Bearer ${CRON_SECRET}`) {
@@ -177,4 +177,14 @@ export async function POST(request: NextRequest) {
     sent,
     pruned: expiredSubIds.length,
   });
+}
+
+// Vercel Cron triggers the endpoint with GET; manual/external callers may POST.
+// Both run the same logic (Vercel auto-attaches `Authorization: Bearer CRON_SECRET`).
+export async function GET(request: NextRequest) {
+  return handle(request);
+}
+
+export async function POST(request: NextRequest) {
+  return handle(request);
 }
