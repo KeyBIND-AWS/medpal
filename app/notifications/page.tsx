@@ -6,7 +6,8 @@ import { useTranslation } from '@/contexts/LanguageContext';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
 import { Toggle } from '@/components/ui/Toggle';
 import { EmptyState } from '@/components/ui/EmptyState';
-import { BellIcon, PillIcon, WarningIcon } from '@phosphor-icons/react';
+import { Button } from '@/components/ui/Button';
+import { BellIcon, PillIcon, WarningIcon, PaperPlaneTiltIcon } from '@phosphor-icons/react';
 
 type NotificationLog = {
     id: string;
@@ -38,6 +39,18 @@ export default function NotificationsPage() {
 
     const [notifications, setNotifications] = useState<NotificationLog[]>([]);
     const [loading, setLoading] = useState(true);
+    const [sendingTest, setSendingTest] = useState(false);
+    const [testMsg, setTestMsg] = useState<string | null>(null);
+
+    const refreshFeed = async () => {
+        try {
+            const res = await fetch('/api/notifications');
+            const data = await res.json();
+            if (res.ok && Array.isArray(data)) setNotifications(data);
+        } catch {
+            /* ignore */
+        }
+    };
 
     useEffect(() => {
         let cancelled = false;
@@ -58,6 +71,22 @@ export default function NotificationsPage() {
     const handleToggle = async (next: boolean) => {
         if (next) await subscribe();
         else await unsubscribe();
+    };
+
+    const handleSendTest = async () => {
+        setSendingTest(true);
+        setTestMsg(null);
+        try {
+            const res = await fetch('/api/notifications/test', { method: 'POST' });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || 'Failed to send test notification.');
+            setTestMsg(`Sent to ${data.sent}/${data.devices} device${data.devices === 1 ? '' : 's'}.`);
+            await refreshFeed();
+        } catch (err) {
+            setTestMsg(err instanceof Error ? err.message : 'Failed to send test notification.');
+        } finally {
+            setSendingTest(false);
+        }
     };
 
     const handleCardTap = async (n: NotificationLog) => {
@@ -110,6 +139,25 @@ export default function NotificationsPage() {
                     <Toggle enabled={isSubscribed} onChange={handleToggle} />
                 )}
             </div>
+
+            {/* Send a test push to this device (only useful once subscribed) */}
+            {isSupported && permission !== 'denied' && isSubscribed && (
+                <div className="flex flex-col gap-2 -mt-1">
+                    <Button
+                        variant="secondary"
+                        size="sm"
+                        className="w-full"
+                        onClick={handleSendTest}
+                        isLoading={sendingTest}
+                        iconLeft={<PaperPlaneTiltIcon className="w-4 h-4" weight="fill" />}
+                    >
+                        {t.notificationsPage.sendTest}
+                    </Button>
+                    {testMsg && (
+                        <p className="text-xs text-muted text-center">{testMsg}</p>
+                    )}
+                </div>
+            )}
 
             {/* Blocked-in-browser banner */}
             {permission === 'denied' && (
