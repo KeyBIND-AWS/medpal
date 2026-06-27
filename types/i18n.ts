@@ -70,4 +70,15 @@ export type Dictionary = {
         emptyDisclaimer: string;
         error: string;
     };
+
+    topBar: {
+        scanner: string;
+        records: string;
+        addManually: string;
+        reminders: string;
+        notifications: string;
+        settings: string;
+        chat: string;
+        results: string;
+    };
 };
