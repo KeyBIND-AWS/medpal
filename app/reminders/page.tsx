@@ -6,7 +6,7 @@ import { useTranslation } from '@/contexts/LanguageContext';
 import { ReminderCard } from '@/components/ui/ReminderCard';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Button } from '@/components/ui/Button';
-import { SunIcon, CloudSunIcon, MoonIcon, PlusIcon, BellIcon, TrashIcon } from '@phosphor-icons/react';
+import { SunIcon, CloudSunIcon, MoonIcon, PlusIcon, BellIcon, TrashIcon, PillIcon } from '@phosphor-icons/react';
 import { createClient } from '@/utils/supabase/client';
 
 const VAPID_PUBLIC_KEY = "BEl62Ohay1XZaBz5T94_7bSI5UrZf15M13mTu49KEY612q321_Example_Key_Value_Base64";
@@ -110,6 +110,10 @@ function RemindersInner() {
     const [label, setLabel] = useState('');
     const [submitting, setSubmitting] = useState(false);
     const [modalError, setModalError] = useState<string | null>(null);
+
+    // Edit mode states
+    const [editingId, setEditingId] = useState<string | null>(null);
+    const [editingMed, setEditingMed] = useState<{ drugName: string; dosage: string } | null>(null);
 
     // Bulk mode states
     const [isBulkMode, setIsBulkMode] = useState(false);
@@ -239,15 +243,32 @@ function RemindersInner() {
     const handleOpenModal = () => {
         setIsBulkMode(false);
         setBulkSuggestions([]);
+        setEditingId(null);
+        setEditingMed(null);
+        setTime('08:00');
+        setLabel('');
         setIsModalOpen(true);
         setModalError(null);
         fetchMedications();
+    };
+
+    const handleOpenEdit = (r: Reminder) => {
+        setIsBulkMode(false);
+        setBulkSuggestions([]);
+        setEditingId(r.id);
+        setEditingMed({ drugName: r.drugName, dosage: r.dosage });
+        setTime(r.time);
+        setLabel(r.instruction);
+        setModalError(null);
+        setIsModalOpen(true);
     };
 
     const handleCloseModal = () => {
         setIsModalOpen(false);
         setIsBulkMode(false);
         setBulkSuggestions([]);
+        setEditingId(null);
+        setEditingMed(null);
         setSelectedMedId('');
         setTime('08:00');
         setLabel('');
@@ -288,6 +309,44 @@ function RemindersInner() {
         } finally {
             setSubmitting(false);
         }
+    };
+
+    const handleUpdateReminder = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!editingId) return;
+        if (!time || !label.trim()) {
+            setModalError('All fields are required.');
+            return;
+        }
+        setSubmitting(true);
+        setModalError(null);
+        try {
+            const response = await fetch(`/api/reminders/${editingId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ time, label: label.trim() }),
+            });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error || 'Failed to update reminder');
+            setReminders(prev => prev
+                .map(r => r.id === editingId
+                    ? { ...r, time, period: derivePeriod(time), instruction: label.trim() }
+                    : r)
+                .sort((a, b) => a.time.localeCompare(b.time)));
+            handleCloseModal();
+        } catch (err: any) {
+            console.error('Failed to update reminder:', err);
+            setModalError(err.message || 'An error occurred while updating the reminder.');
+        } finally {
+            setSubmitting(false);
+        }
+    };
+
+    const handleDeleteFromModal = () => {
+        if (!editingId) return;
+        const id = editingId;
+        handleCloseModal();
+        handleDelete(id);
     };
 
     const handleBulkConfirm = async () => {
@@ -363,7 +422,7 @@ function RemindersInner() {
                     <div className="flex items-center justify-between px-6 pt-4 pb-3 border-b border-slate-100 shrink-0">
                         <div>
                             <h3 className="font-poppins font-bold text-lg text-slate-900">
-                                {isBulkMode ? 'Set Reminders' : 'Add Custom Reminder'}
+                                {isBulkMode ? 'Set Reminders' : editingId ? 'Edit Reminder' : 'Add Custom Reminder'}
                             </h3>
                             {isBulkMode && (
                                 <p className="text-xs text-muted mt-0.5">
@@ -476,6 +535,70 @@ function RemindersInner() {
                                 </button>
                             </div>
                         </>
+                    ) : editingId ? (
+                        /* Edit form */
+                        <div className="flex-1 overflow-y-auto px-6 py-4">
+                            <form onSubmit={handleUpdateReminder} className="flex flex-col gap-4">
+                                {modalError && (
+                                    <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-red-600 text-xs font-semibold">
+                                        {modalError}
+                                    </div>
+                                )}
+                                {/* Fixed medication (display only) */}
+                                <div className="flex flex-col gap-1.5">
+                                    <label className="text-xs font-bold text-slate-700">Medication</label>
+                                    <div className="flex items-center gap-2 h-11 px-3 rounded-xl bg-slate-50 border border-slate-200">
+                                        <PillIcon className="w-4 h-4 text-primary shrink-0" weight="fill" />
+                                        <span className="text-sm font-semibold text-slate-800 truncate">{editingMed?.drugName}</span>
+                                        {editingMed?.dosage && (
+                                            <span className="ml-auto bg-slate-100 text-slate-600 text-[10px] font-bold px-2 py-0.5 rounded-md shrink-0">
+                                                {editingMed.dosage}
+                                            </span>
+                                        )}
+                                    </div>
+                                </div>
+                                <div className="flex flex-col gap-1.5">
+                                    <label className="text-xs font-bold text-slate-700">Reminder Time</label>
+                                    <input
+                                        type="time"
+                                        value={time}
+                                        onChange={(e) => setTime(e.target.value)}
+                                        required
+                                        className="w-full h-11 px-3 rounded-xl bg-slate-50 border border-slate-200 focus:border-primary focus:ring-2 focus:ring-primary/10 text-slate-800 text-sm outline-none transition-all"
+                                    />
+                                </div>
+                                <div className="flex flex-col gap-1.5">
+                                    <label className="text-xs font-bold text-slate-700">Instruction Label</label>
+                                    <input
+                                        type="text"
+                                        value={label}
+                                        onChange={(e) => setLabel(e.target.value)}
+                                        placeholder="e.g. Take with water after breakfast"
+                                        required
+                                        className="h-11 px-4 rounded-xl bg-slate-50 border border-slate-200 focus:border-primary focus:ring-2 focus:ring-primary/10 text-slate-800 placeholder-slate-400 text-sm outline-none transition-all"
+                                    />
+                                </div>
+                                <div className="flex items-center justify-between gap-3 pt-3 border-t border-slate-100">
+                                    <button
+                                        type="button"
+                                        onClick={handleDeleteFromModal}
+                                        disabled={submitting}
+                                        className="inline-flex items-center gap-1.5 text-sm font-semibold text-danger hover:text-red-700 transition-colors disabled:opacity-40"
+                                    >
+                                        <TrashIcon className="w-4 h-4" />
+                                        Delete
+                                    </button>
+                                    <div className="flex items-center gap-3">
+                                        <Button type="button" variant="secondary" size="sm" onClick={handleCloseModal} disabled={submitting}>
+                                            Cancel
+                                        </Button>
+                                        <Button type="submit" variant="primary" size="sm" isLoading={submitting}>
+                                            Save Changes
+                                        </Button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
                     ) : (
                         /* Single-add form (unchanged) */
                         <div className="flex-1 overflow-y-auto px-6 py-4">
@@ -623,7 +746,7 @@ function RemindersInner() {
                         <h2 className="text-sm uppercase tracking-wider">{t.remindersPage.morning}</h2>
                     </div>
                     {morning.map(r => (
-                        <ReminderCard key={r.id} {...r} isActive={r.is_active !== undefined ? r.is_active : r.isActive} onToggle={(state) => handleSynchronizeReminderUpdate(r.id, { is_active: state })} onDelete={() => handleDelete(r.id)} />
+                        <ReminderCard key={r.id} {...r} isActive={r.is_active !== undefined ? r.is_active : r.isActive} onToggle={(state) => handleSynchronizeReminderUpdate(r.id, { is_active: state })} onEdit={() => handleOpenEdit(r)} onDelete={() => handleDelete(r.id)} />
                     ))}
                 </section>
             )}
@@ -635,7 +758,7 @@ function RemindersInner() {
                         <h2 className="text-sm uppercase tracking-wider">{t.remindersPage.afternoon}</h2>
                     </div>
                     {afternoon.map(r => (
-                        <ReminderCard key={r.id} {...r} isActive={r.is_active !== undefined ? r.is_active : r.isActive} onToggle={(state) => handleSynchronizeReminderUpdate(r.id, { is_active: state })} onDelete={() => handleDelete(r.id)} />
+                        <ReminderCard key={r.id} {...r} isActive={r.is_active !== undefined ? r.is_active : r.isActive} onToggle={(state) => handleSynchronizeReminderUpdate(r.id, { is_active: state })} onEdit={() => handleOpenEdit(r)} onDelete={() => handleDelete(r.id)} />
                     ))}
                 </section>
             )}
@@ -647,7 +770,7 @@ function RemindersInner() {
                         <h2 className="text-sm uppercase tracking-wider">{t.remindersPage.evening}</h2>
                     </div>
                     {evening.map(r => (
-                        <ReminderCard key={r.id} {...r} isActive={r.is_active !== undefined ? r.is_active : r.isActive} onToggle={(state) => handleSynchronizeReminderUpdate(r.id, { is_active: state })} onDelete={() => handleDelete(r.id)} />
+                        <ReminderCard key={r.id} {...r} isActive={r.is_active !== undefined ? r.is_active : r.isActive} onToggle={(state) => handleSynchronizeReminderUpdate(r.id, { is_active: state })} onEdit={() => handleOpenEdit(r)} onDelete={() => handleDelete(r.id)} />
                     ))}
                 </section>
             )}

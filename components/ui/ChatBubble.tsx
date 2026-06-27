@@ -9,6 +9,21 @@ interface ChatBubbleProps {
     isTyping?: boolean;
 }
 
+// Render the AI's plain-text Markdown safely: HTML is escaped first (so raw
+// model output can't inject markup), then a minimal subset is converted.
+function renderMarkdown(text: string): string {
+    const escaped = text
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+
+    return escaped
+        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>') // **bold**
+        .replace(/\n/g, '<br/>'); // preserve line breaks
+}
+
 export function ChatBubble({ message, isUser, isTyping }: ChatBubbleProps) {
     if (isUser) {
         return (
@@ -35,7 +50,7 @@ export function ChatBubble({ message, isUser, isTyping }: ChatBubbleProps) {
                         <div className="w-2 h-2 bg-slate-300 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
                     </div>
                 ) : (
-                    <div dangerouslySetInnerHTML={{ __html: message }} />
+                    <div dangerouslySetInnerHTML={{ __html: renderMarkdown(message) }} />
                 )}
             </div>
         </div>

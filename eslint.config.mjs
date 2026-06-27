@@ -12,6 +12,9 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Standalone TTS sidecar — separate CommonJS package (sherpa-onnx is a
+    // native CJS addon), not part of the Next.js app build or lint surface.
+    "tts-service/**",
   ]),
 ]);
 

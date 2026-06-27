@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 import { useTranslation } from '@/contexts/LanguageContext';
 import { ChatBubble } from '@/components/ui/ChatBubble';
 import { ChatInput } from '@/components/ui/ChatInput';
@@ -13,39 +14,87 @@ type Message = {
 
 export default function ChatPage() {
     const { t } = useTranslation();
+    const router = useRouter();
     const bottomRef = useRef<HTMLDivElement>(null);
 
     const [messages, setMessages] = useState<Message[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
     const [isTyping, setIsTyping] = useState(false);
 
-    // Initialize with greeting
+    // Load saved conversation history on mount
     useEffect(() => {
-        setMessages([
-            { id: '1', text: t.chatPage.greeting, isUser: false }
-        ]);
-    }, [t.chatPage.greeting]);
+        const loadHistory = async () => {
+            try {
+                const res = await fetch('/api/chat');
+                if (res.status === 401) {
+                    router.push('/');
+                    return;
+                }
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || 'Failed to load history');
+
+                const mapped: Message[] = (data.messages || []).map(
+                    (m: { id: string; role: string; content: string }) => ({
+                        id: m.id,
+                        text: m.content,
+                        isUser: m.role === 'user',
+                    }),
+                );
+                setMessages(mapped);
+            } catch (err) {
+                console.error('Failed to load chat history:', err);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        loadHistory();
+    }, [router]);
 
     // Auto-scroll to bottom when messages update
     useEffect(() => {
         bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }, [messages, isTyping]);
+    }, [messages, isTyping, isLoading]);
 
-    const handleSendMessage = (text: string) => {
-        // 1. Add User Message
+    const handleSendMessage = async (text: string) => {
+        // 1. Optimistically add the user's message
         const userMsg: Message = { id: Date.now().toString(), text, isUser: true };
-        setMessages(prev => [...prev, userMsg]);
+        setMessages((prev) => [...prev, userMsg]);
         setIsTyping(true);
 
-        // 2. Mock AI Response Delay (Replace with POST /api/chat on Day 4)
-        setTimeout(() => {
+        // 2. Call the chat API (loads the user's meds + history server-side)
+        try {
+            const res = await fetch('/api/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: text }),
+            });
+
+            if (res.status === 401) {
+                router.push('/');
+                return;
+            }
+
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || 'Chat request failed');
+
             const aiMsg: Message = {
-                id: (Date.now() + 1).toString(),
-                text: "Ang <b>Amlodipine</b> usa ka tambal para sa hataas nga presyon sa dugo (high blood pressure). Gina-relax niini ang imong mga ugat aron mas sayon mudagan ang dugo.",
-                isUser: false
+                id: `${Date.now() + 1}`,
+                text: data.response,
+                isUser: false,
             };
-            setMessages(prev => [...prev, aiMsg]);
+            setMessages((prev) => [...prev, aiMsg]);
+        } catch (err) {
+            console.error('Chat request failed:', err);
+            const errorMsg: Message = {
+                id: `err-${Date.now()}`,
+                text: t.chatPage.error,
+                isUser: false,
+            };
+            setMessages((prev) => [...prev, errorMsg]);
+        } finally {
             setIsTyping(false);
-        }, 1500);
+        }
     };
 
     return (
@@ -58,11 +107,14 @@ export default function ChatPage() {
                     {t.chatPage.emptyDisclaimer}
                 </p>
 
+                {/* Persistent greeting (reacts to language changes) */}
+                <ChatBubble message={t.chatPage.greeting} isUser={false} />
+
                 {messages.map((msg) => (
                     <ChatBubble key={msg.id} message={msg.text} isUser={msg.isUser} />
                 ))}
 
-                {isTyping && (
+                {(isTyping || isLoading) && (
                     <ChatBubble message="" isUser={false} isTyping={true} />
                 )}
 
@@ -75,7 +127,7 @@ export default function ChatPage() {
                 <ChatInput
                     placeholder={t.chatPage.placeholder}
                     onSend={handleSendMessage}
-                    disabled={isTyping}
+                    disabled={isTyping || isLoading}
                 />
             </div>
 

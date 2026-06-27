@@ -10,6 +10,8 @@ export interface MedicationRecord {
     warnings?: string;
     start_date?: string | null;
     end_date?: string | null;
+    rxcui?: string | null;
+    rxnorm_verified?: boolean | null;
 }
 
 export interface ScanResult {

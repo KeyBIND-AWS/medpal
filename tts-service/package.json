@@ -1,0 +1,12 @@
+{
+  "name": "medpal-tts-service",
+  "private": true,
+  "type": "commonjs",
+  "description": "MedPal TTS sidecar — Meta MMS-TTS (Cebuano/Tagalog/English) via sherpa-onnx. Not deployed on Vercel.",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "sherpa-onnx": "^1.13.0"
+  }
+}

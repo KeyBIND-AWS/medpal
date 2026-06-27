@@ -33,6 +33,8 @@ export const dictionaries: Record<Language, Dictionary> = {
             saveToRecords: 'Save to Records',
             setReminders: 'Set Reminders',
             saving: 'Saving...',
+            listen: 'Listen',
+            stop: 'Stop',
         },
         recordsList: {
             title: 'My Records',
@@ -52,7 +54,8 @@ export const dictionaries: Record<Language, Dictionary> = {
             title: 'Chat',
             greeting: 'Hello! Just ask if you want to know anything about your medicine. 😀',
             placeholder: 'Ask a question...',
-            emptyDisclaimer: 'Medical AI can make mistakes. Always consult your doctor.'
+            emptyDisclaimer: 'Medical AI can make mistakes. Always consult your doctor.',
+            error: 'Sorry, something went wrong. Please try again.'
         },
     },
     filipino: {
@@ -87,6 +90,8 @@ export const dictionaries: Record<Language, Dictionary> = {
             saveToRecords: 'I-save sa Rekord',
             setReminders: 'Magtakda ng Paalala',
             saving: 'Sini-save...',
+            listen: 'Pakinggan',
+            stop: 'Itigil',
         },
         recordsList: {
             title: 'Mga Rekord',
@@ -106,7 +111,8 @@ export const dictionaries: Record<Language, Dictionary> = {
             title: 'Chat',
             greeting: 'Kumusta! Magtanong lang kung ano ang gusto mong malaman tungkol sa iyong gamot. 😀',
             placeholder: 'Mag-type ng tanong...',
-            emptyDisclaimer: 'Maaaring magkamali ang AI. Kumonsulta palagi sa doktor.'
+            emptyDisclaimer: 'Maaaring magkamali ang AI. Kumonsulta palagi sa doktor.',
+            error: 'Paumanhin, may nangyaring mali. Pakisubukang muli.'
         },
     },
     bisaya: {
@@ -141,6 +147,8 @@ export const dictionaries: Record<Language, Dictionary> = {
             saveToRecords: 'I-save sa Records',
             setReminders: 'Pagbutang og Reminders',
             saving: 'Gina-save...',
+            listen: 'Paminawa',
+            stop: 'Hunong',
         },
         recordsList: {
             title: 'Akong Records',
@@ -160,7 +168,8 @@ export const dictionaries: Record<Language, Dictionary> = {
             title: 'Chat',
             greeting: 'Kumusta! Pangutana lang kung unsa imong gusto mahibal-an bahin sa imong tambal. 😀',
             placeholder: 'Pag-type og pangutana...',
-            emptyDisclaimer: 'Basin masayop ang AI. Pagkonsulta kanunay sa doktor.'
+            emptyDisclaimer: 'Basin masayop ang AI. Pagkonsulta kanunay sa doktor.',
+            error: 'Pasensya, naay sayop nga nahitabo. Palihug sulayi pag-usab.'
         },
     },
 };

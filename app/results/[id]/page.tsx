@@ -4,10 +4,11 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useTranslation } from '@/contexts/LanguageContext';
 import { MedicationCard } from '@/components/ui/MedicationCard';
+import { ListenButton } from '@/components/ui/ListenButton';
 import { DisclaimerBanner } from '@/components/ui/DisclaimerBanner';
 import { Button } from '@/components/ui/Button';
 import { ScanResult } from '@/types/schema';
-import { ScanIcon, BellIcon } from '@phosphor-icons/react';
+import { ScanIcon, BellIcon, WarningIcon } from '@phosphor-icons/react';
 
 export default function ResultsPage() {
     const params = useParams();
@@ -53,9 +54,32 @@ export default function ResultsPage() {
         <div className="w-full max-w-[480px] mx-auto min-h-[calc(100vh-8rem)] flex flex-col p-6 gap-6 animate-in fade-in duration-300 pb-28">
 
             {/* 1. Dynamic Summary (From AI) */}
-            <p className="text-sm text-muted font-medium px-2">
-                {resultData.summary}
-            </p>
+            <div className="flex items-start justify-between gap-3 px-2">
+                <p className="text-sm text-muted font-medium">
+                    {resultData.summary}
+                </p>
+                <ListenButton text={resultData.summary} />
+            </div>
+
+            {/* Anti-hallucination: symptom / medication mismatch warning */}
+            {(resultData as any)?.ai_response?.mismatch_warning && (
+                <div className="flex items-start gap-3 rounded-2xl border border-amber-300 bg-amber-50 p-4 -mt-1">
+                    <WarningIcon className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" weight="fill" />
+                    <p className="text-sm text-amber-800 font-medium leading-snug">
+                        {(resultData as any).ai_response.mismatch_warning}
+                    </p>
+                </div>
+            )}
+
+            {/* Anti-hallucination: RxNorm drug-verification warning */}
+            {(resultData as any)?.ai_response?.verification_warning && (
+                <div className="flex items-start gap-3 rounded-2xl border border-amber-300 bg-amber-50 p-4 -mt-1">
+                    <WarningIcon className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" weight="fill" />
+                    <p className="text-sm text-amber-800 font-medium leading-snug">
+                        {(resultData as any).ai_response.verification_warning}
+                    </p>
+                </div>
+            )}
 
             {/* 2. Medication Cards Stack */}
             <div className="flex flex-col gap-4">

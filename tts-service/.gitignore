@@ -1,0 +1,6 @@
+# Downloaded MMS-TTS models (~30–70 MB total) — never commit; download at setup.
+models/*
+!models/.gitkeep
+
+# Deps
+node_modules/
