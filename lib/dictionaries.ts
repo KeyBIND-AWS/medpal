@@ -58,7 +58,8 @@ export const dictionaries: Record<Language, Dictionary> = {
             pushDenied: 'Blocked in browser settings',
             emptyTitle: 'No notifications yet',
             emptyDesc: 'Enable push above so your medication reminders show up here.',
-            markAllRead: 'Mark all read'
+            markAllRead: 'Mark all read',
+            sendTest: 'Send a test notification'
         },
         chatPage: {
             title: 'Chat',
@@ -125,7 +126,8 @@ export const dictionaries: Record<Language, Dictionary> = {
             pushDenied: 'Naka-block sa browser settings',
             emptyTitle: 'Wala pang abiso',
             emptyDesc: 'I-on ang push sa itaas para lumabas dito ang mga paalala sa gamot.',
-            markAllRead: 'Markahang nabasa lahat'
+            markAllRead: 'Markahang nabasa lahat',
+            sendTest: 'Magpadala ng test na abiso'
         },
         chatPage: {
             title: 'Chat',
@@ -192,7 +194,8 @@ export const dictionaries: Record<Language, Dictionary> = {
             pushDenied: 'Gi-block sa browser settings',
             emptyTitle: 'Wala pay pahibalo',
             emptyDesc: 'I-on ang push sa ibabaw aron magpakita dinhi ang mga pahinumdom sa tambal.',
-            markAllRead: 'Markahi tanan nga nabasa'
+            markAllRead: 'Markahi tanan nga nabasa',
+            sendTest: 'Pagpadala og test nga pahibalo'
         },
         chatPage: {
             title: 'Chat',

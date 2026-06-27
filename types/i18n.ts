@@ -60,6 +60,7 @@ export type Dictionary = {
         emptyTitle: string;
         emptyDesc: string;
         markAllRead: string;
+        sendTest: string;
     };
 
     chatPage: {
