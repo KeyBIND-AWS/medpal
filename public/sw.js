@@ -1,6 +1,6 @@
 // MedPal Unified Service Worker (Next.js Caching + Web Push Engine)
 
-const CACHE_VERSION = 'v3';
+const CACHE_VERSION = 'v4';
 const CACHE_NAME = `medpal-cache-${CACHE_VERSION}`;
 const PRECACHE_URLS = ['/'];
 
@@ -61,24 +61,29 @@ self.addEventListener('fetch', (event) => {
 // ============================================================================
 self.addEventListener('push', (event) => {
   if (!event.data) return;
-  
+
   const displayNotificationPromise = Promise.resolve().then(() => {
+    let payload = {};
     try {
-      const metadata = event.data.json();
-      return self.registration.showNotification(metadata.title || 'HatidDok', {
-        body: metadata.body || 'Adunay ka bag-ong pahibalo gikan sa imong medical companion.',
-        icon: '/icons/icon-192x192.png',
-        badge: '/icons/icon-72x72.png',
-        vibrate: [100, 50, 100],
-        data: { url: metadata.url || '/reminders' }
-      });
+      payload = event.data.json();
     } catch {
-      return self.registration.showNotification('HatidDok', {
-        body: event.data.text(),
-        icon: '/icons/icon-192x192.png',
-        data: { url: '/reminders' }
-      });
+      payload = { body: event.data.text() };
     }
+
+    // The server may nest routing info under `data`; ensure a click target exists.
+    const data = { ...(payload.data || {}) };
+    if (!data.url) data.url = '/notifications';
+
+    return self.registration.showNotification(payload.title || '💊 MedPal Reminder', {
+      body: payload.body || 'You have a new reminder from MedPal.',
+      icon: payload.icon || '/icons/icon-192x192.png',
+      badge: payload.badge || '/icons/icon-72x72.png',
+      vibrate: payload.vibrate || [200, 100, 200],
+      // `tag` collapses repeat fires of the same reminder into one banner.
+      tag: payload.tag,
+      requireInteraction: payload.requireInteraction ?? false,
+      data,
+    });
   });
 
   event.waitUntil(displayNotificationPromise);
@@ -93,11 +98,13 @@ self.addEventListener('message', (event) => {
 
         // CRITICAL: event.waitUntil guarantees the OS finishes painting the notification banner!
         event.waitUntil(
-            self.registration.showNotification(title || 'MedPal Paalala', {
-                body: body || 'Oras na para sa iyong Metformin (500mg).',
+            self.registration.showNotification(title || '💊 MedPal Reminder', {
+                body: body || 'Time to take your medication.',
                 icon: '/icons/icon-192x192.png',
-                vibrate: [100, 50, 100],
-                data: { url: url || '/reminders' },
+                badge: '/icons/icon-72x72.png',
+                vibrate: [200, 100, 200],
+                requireInteraction: false,
+                data: { url: url || '/notifications' },
             })
         );
     }
@@ -108,7 +115,18 @@ self.addEventListener('message', (event) => {
 // ============================================================================
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
+  const targetUrl = event.notification.data?.url || '/notifications';
+
   event.waitUntil(
-    clients.openWindow(event.notification.data?.url || '/reminders')
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+      // Reuse an already-open MedPal tab when possible instead of spawning a new one.
+      for (const client of clientList) {
+        if ('focus' in client) {
+          if ('navigate' in client) client.navigate(targetUrl).catch(() => {});
+          return client.focus();
+        }
+      }
+      if (clients.openWindow) return clients.openWindow(targetUrl);
+    })
   );
 });

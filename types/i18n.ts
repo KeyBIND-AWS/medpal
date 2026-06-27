@@ -52,6 +52,16 @@ export type Dictionary = {
         emptyDesc: string;
     };
 
+    notificationsPage: {
+        title: string;
+        enablePush: string;
+        pushEnabled: string;
+        pushDenied: string;
+        emptyTitle: string;
+        emptyDesc: string;
+        markAllRead: string;
+    };
+
     chatPage: {
         title: string,
         greeting: string;
