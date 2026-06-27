@@ -57,5 +57,6 @@ export type Dictionary = {
         greeting: string;
         placeholder: string;
         emptyDisclaimer: string;
+        error: string;
     };
 };
