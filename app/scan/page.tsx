@@ -25,6 +25,7 @@ export default function ScanPage() {
   const [scanType, setScanType] = useState<ScanType>('prescription');
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [scanError, setScanError] = useState<string | null>(null);
   const [symptoms, setSymptoms] = useState('');
   const [listening, setListening] = useState(false);
   const [speechSupported, setSpeechSupported] = useState(false);
@@ -100,30 +101,28 @@ export default function ScanPage() {
   const handleProceed = async () => {
     if (!capturedImage) return;
     setIsAnalyzing(true);
+    setScanError(null);
 
     try {
-      // Direct call to Brian's Bedrock endpoint per Master Plan architecture
       const response = await fetch('/api/scan', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           image: capturedImage,
           type: scanType,
-          language: language, // Tells Claude to output in Bisaya/Filipino
-          symptoms: symptoms.trim() || undefined, // optional anti-hallucination cross-check
+          language: language,
+          symptoms: symptoms.trim() || undefined,
         }),
       });
 
       const data = await response.json();
-      if (!response.ok) throw new Error(data.error || 'API Route pending or failed');
+      if (!response.ok) throw new Error(data.error || 'Scan failed');
 
-      router.push(`/results/${data.scan_id || 'demo-123'}`);
+      router.push(`/results/${data.scan_id}`);
     } catch (err) {
-      console.warn('Backend API /api/scan unavailable. Bypassing to UI demo view:', err);
-      // HACKATHON FAILSAFE: Send to demo result page so Chubby can QA the UI flow!
-      setTimeout(() => {
-        router.push('/results/demo-123');
-      }, 1500);
+      console.error('Scan failed:', err);
+      setScanError(err instanceof Error ? err.message : 'Something went wrong. Please try again.');
+      setIsAnalyzing(false);
     }
   };
 
@@ -231,6 +230,12 @@ export default function ScanPage() {
                     </p>
                   )}
                 </div>
+              )}
+
+              {scanError && (
+                <p className="text-xs text-rose-600 px-1 text-center" role="alert">
+                  {scanError}
+                </p>
               )}
 
               <Button
