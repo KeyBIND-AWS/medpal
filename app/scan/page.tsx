@@ -28,6 +28,7 @@ export default function ScanPage() {
   const [symptoms, setSymptoms] = useState('');
   const [listening, setListening] = useState(false);
   const [speechSupported, setSpeechSupported] = useState(false);
+  const [speechError, setSpeechError] = useState<string | null>(null);
   const recognitionRef = useRef<any>(null);
 
   useEffect(() => {
@@ -35,26 +36,63 @@ export default function ScanPage() {
     setSpeechSupported(!!SR);
   }, []);
 
+  // Stop any in-flight recognition if the user navigates away mid-listen
+  useEffect(() => () => recognitionRef.current?.abort?.(), []);
+
+  const describeSpeechError = (code: string) => {
+    switch (code) {
+      case 'not-allowed':
+      case 'service-not-allowed':
+        // The #1 real-world cause: mic permission denied OR an insecure (non-HTTPS) origin
+        return 'Mic blocked. Allow microphone access, and open the app over HTTPS (or localhost).';
+      case 'no-speech':
+        return "Didn't catch that — try again.";
+      case 'audio-capture':
+        return 'No microphone found.';
+      case 'network':
+        return 'Speech service unreachable. Check your connection.';
+      default:
+        return 'Speech recognition failed. Please type your symptoms instead.';
+    }
+  };
+
   const toggleListening = () => {
     const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    if (!SR) return;
+    if (!SR) {
+      setSpeechError('Speech recognition is not supported in this browser. Please type instead.');
+      return;
+    }
     if (listening) {
       recognitionRef.current?.stop();
       return;
     }
+
+    setSpeechError(null);
     const rec = new SR();
     rec.lang = SPEECH_LANG[language] || 'fil-PH';
     rec.interimResults = false;
     rec.maxAlternatives = 1;
+    rec.onstart = () => setListening(true);
     rec.onresult = (e: any) => {
       const transcript = Array.from(e.results).map((r: any) => r[0].transcript).join(' ');
       setSymptoms((prev) => (prev ? prev.trim() + ' ' : '') + transcript);
     };
     rec.onend = () => setListening(false);
-    rec.onerror = () => setListening(false);
+    rec.onerror = (e: any) => {
+      console.error('SpeechRecognition error:', e?.error, e);
+      setListening(false);
+      setSpeechError(describeSpeechError(e?.error));
+    };
     recognitionRef.current = rec;
-    setListening(true);
-    rec.start();
+
+    try {
+      rec.start();
+    } catch (err) {
+      // rec.start() throws synchronously on insecure origins / repeated start calls
+      console.error('SpeechRecognition start() threw:', err);
+      setListening(false);
+      setSpeechError('Could not start the microphone. Open the app over HTTPS and allow mic access.');
+    }
   };
 
   const symptomCopy = SYMPTOM_COPY[language] || SYMPTOM_COPY.bisaya;
@@ -190,6 +228,11 @@ export default function ScanPage() {
                         </button>
                     )}
                   </div>
+                  {speechError && (
+                    <p className="text-xs text-rose-600 px-1" role="alert">
+                      {speechError}
+                    </p>
+                  )}
                 </div>
               )}
 
