@@ -38,7 +38,9 @@ export async function GET(request: NextRequest, context: RouteContext) {
           instructions,
           warnings,
           start_date,
-          end_date
+          end_date,
+          rxcui,
+          rxnorm_verified
         )
       `)
       .eq('id', recordId)
