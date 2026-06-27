@@ -129,7 +129,7 @@ export default function ScanPage() {
                   {t.scanner.analyzing}
                 </h3>
                 <p className="text-xs text-muted max-w-[200px]">
-                  AWS Bedrock Claude 3.5 is translating medical jargon into plain language...
+                  Amazon Textract and Comprehend Medical are extracting your prescription data...
                 </p>
               </Card>
           ) : !capturedImage ? (
