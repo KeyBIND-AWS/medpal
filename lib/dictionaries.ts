@@ -6,6 +6,7 @@ export const dictionaries: Record<Language, Dictionary> = {
             scan: 'Scan',
             records: 'Records',
             reminders: 'Reminders',
+            notifications: 'Notifications',
             chat: 'Chat',
             settings: 'Settings',
         },
@@ -50,6 +51,15 @@ export const dictionaries: Record<Language, Dictionary> = {
             emptyTitle: 'No Reminders Yet',
             emptyDesc: 'Your scheduled medications will appear here.'
         },
+        notificationsPage: {
+            title: 'Notifications',
+            enablePush: 'Push notifications',
+            pushEnabled: 'On',
+            pushDenied: 'Blocked in browser settings',
+            emptyTitle: 'No notifications yet',
+            emptyDesc: 'Enable push above so your medication reminders show up here.',
+            markAllRead: 'Mark all read'
+        },
         chatPage: {
             title: 'Chat',
             greeting: 'Hello! Just ask if you want to know anything about your medicine. 😀',
@@ -63,6 +73,7 @@ export const dictionaries: Record<Language, Dictionary> = {
             scan: 'Scan',
             records: 'Tala',
             reminders: 'Paalala',
+            notifications: 'Mga Abiso',
             chat: 'Chat',
             settings: 'Settings'
         },
@@ -107,6 +118,15 @@ export const dictionaries: Record<Language, Dictionary> = {
             emptyTitle: 'Wala pang Paalala',
             emptyDesc: 'Dito makikita ang mga nakatakdang inumin na gamot.'
         },
+        notificationsPage: {
+            title: 'Mga Abiso',
+            enablePush: 'Mga push notification',
+            pushEnabled: 'Naka-on',
+            pushDenied: 'Naka-block sa browser settings',
+            emptyTitle: 'Wala pang abiso',
+            emptyDesc: 'I-on ang push sa itaas para lumabas dito ang mga paalala sa gamot.',
+            markAllRead: 'Markahang nabasa lahat'
+        },
         chatPage: {
             title: 'Chat',
             greeting: 'Kumusta! Magtanong lang kung ano ang gusto mong malaman tungkol sa iyong gamot. 😀',
@@ -120,6 +140,7 @@ export const dictionaries: Record<Language, Dictionary> = {
             scan: 'Scan',
             records: 'Rekord',
             reminders: 'Pahinumdom',
+            notifications: 'Mga Pahibalo',
             chat: 'Chat',
             settings: 'Settings'
         },
@@ -163,6 +184,15 @@ export const dictionaries: Record<Language, Dictionary> = {
             evening: 'Gabii',
             emptyTitle: 'Wala pay Pahinumdom',
             emptyDesc: 'Dinhi makita ang mga gitakdang imnon nga tambal.'
+        },
+        notificationsPage: {
+            title: 'Mga Pahibalo',
+            enablePush: 'Mga push notification',
+            pushEnabled: 'Naka-on',
+            pushDenied: 'Gi-block sa browser settings',
+            emptyTitle: 'Wala pay pahibalo',
+            emptyDesc: 'I-on ang push sa ibabaw aron magpakita dinhi ang mga pahinumdom sa tambal.',
+            markAllRead: 'Markahi tanan nga nabasa'
         },
         chatPage: {
             title: 'Chat',

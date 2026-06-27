@@ -110,13 +110,38 @@ create table if not exists public.reminders (
   created_at    timestamptz default now()
 );
 
+-- ── Push subscriptions (one row per browser/device that enabled push) ───────
+create table if not exists public.push_subscriptions (
+  id         uuid primary key default gen_random_uuid(),
+  user_id    uuid not null references auth.users(id) on delete cascade,
+  endpoint   text not null,
+  p256dh     text not null,
+  auth_key   text not null,
+  created_at timestamptz default now(),
+  unique (user_id, endpoint)
+);
+
+-- ── Notification logs (history shown in the Notifications tab) ──────────────
+create table if not exists public.notification_logs (
+  id          uuid primary key default gen_random_uuid(),
+  user_id     uuid not null references auth.users(id) on delete cascade,
+  title       text not null,
+  body        text not null,
+  type        text not null default 'reminder',
+  reminder_id uuid references public.reminders(id) on delete set null,
+  sent_at     timestamptz default now(),
+  read_at     timestamptz
+);
+
 -- ── Row Level Security ─────────────────────────────────────────────────────
-alter table public.users         enable row level security;
-alter table public.scans         enable row level security;
-alter table public.medications   enable row level security;
-alter table public.chat_messages enable row level security;
-alter table public.records       enable row level security;
-alter table public.reminders     enable row level security;
+alter table public.users              enable row level security;
+alter table public.scans              enable row level security;
+alter table public.medications        enable row level security;
+alter table public.chat_messages      enable row level security;
+alter table public.records            enable row level security;
+alter table public.reminders          enable row level security;
+alter table public.push_subscriptions enable row level security;
+alter table public.notification_logs  enable row level security;
 
 -- users: a user can only see/modify their own profile row
 drop policy if exists users_select_own on public.users;
@@ -137,6 +162,12 @@ drop policy if exists records_all_own on public.records;
 create policy records_all_own on public.records for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 drop policy if exists reminders_all_own on public.reminders;
 create policy reminders_all_own on public.reminders for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+drop policy if exists push_subscriptions_all_own on public.push_subscriptions;
+create policy push_subscriptions_all_own on public.push_subscriptions for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+-- notification_logs: users may read/update (mark read) their own; the cron writes
+-- with the service-role key, which bypasses RLS, so no insert policy is needed here.
+drop policy if exists notification_logs_all_own on public.notification_logs;
+create policy notification_logs_all_own on public.notification_logs for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
 -- ── Storage bucket for scan images ─────────────────────────────────────────
 insert into storage.buckets (id, name, public)

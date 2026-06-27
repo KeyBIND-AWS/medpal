@@ -46,3 +46,6 @@ DEVELOPER_API_GUIDE.md
 
 # PhpStorm
 .idea/
+
+# Claude Code local config
+.claude/

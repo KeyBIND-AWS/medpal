@@ -1,12 +1,14 @@
 import {
     CameraIcon,
     FileTextIcon,
-    BellIcon,
+    ClockIcon,
     GearSixIcon,
     ChatCircleDotsIcon
 } from '@phosphor-icons/react';
 
-export type NavNameKey = 'scan' | 'records' | 'reminders' | 'settings' | 'chat';
+// 'notifications' has no bottom-nav/sidebar item — it's reached via the TopBar
+// bell — but keeps a label here for the bell's accessible name + dictionaries.
+export type NavNameKey = 'scan' | 'records' | 'reminders' | 'notifications' | 'settings' | 'chat';
 
 export const NAV_ITEMS: { nameKey: NavNameKey; href: string; icon: any }[] = [
     {
@@ -20,9 +22,10 @@ export const NAV_ITEMS: { nameKey: NavNameKey; href: string; icon: any }[] = [
         icon: FileTextIcon,
     },
     {
+        // Clock = scheduled doses you set; the TopBar bell = incoming alerts.
         nameKey: 'reminders',
         href: '/reminders',
-        icon: BellIcon,
+        icon: ClockIcon,
     },
     {
         nameKey: 'chat',
