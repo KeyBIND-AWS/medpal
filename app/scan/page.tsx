@@ -166,9 +166,6 @@ export default function ScanPage() {
                 <h3 className="font-sans font-bold text-lg text-ink mb-2">
                   {t.scanner.analyzing}
                 </h3>
-                <p className="text-xs text-muted max-w-[200px]">
-                  Amazon Textract and Comprehend Medical are extracting your prescription data...
-                </p>
               </Card>
           ) : !capturedImage ? (
               // Viewfinder Mode

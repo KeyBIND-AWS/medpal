@@ -2,7 +2,13 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import { useTranslation } from '@/contexts/LanguageContext';
-import { SpeakerHighIcon, StopIcon, SpinnerGapIcon } from '@phosphor-icons/react';
+import { SpeakerHighIcon, StopIcon, SpinnerGapIcon, WarningIcon } from '@phosphor-icons/react';
+
+// A 1-sample silent WAV. Played inside the click to "unlock" the <audio>
+// element on iOS / macOS Safari, which reject play() that runs after an await
+// (i.e. our fetch) because it's outside the synchronous user-gesture window.
+const SILENT_WAV =
+  'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAESsAACJWAAACABAAZGF0YQAAAAA=';
 
 // Pick a browser speech-synthesis voice for the language, if one exists.
 // Never used for bisaya — no browser has a Cebuano voice, so that always goes
@@ -16,7 +22,7 @@ function pickWebVoice(lang: 'filipino' | 'english'): SpeechSynthesisVoice | null
 
 export function ListenButton({ text, compact = false }: { text: string; compact?: boolean }) {
   const { language, t } = useTranslation();
-  const [state, setState] = useState<'idle' | 'loading' | 'playing'>('idle');
+  const [state, setState] = useState<'idle' | 'loading' | 'playing' | 'error'>('idle');
   const audioRef = useRef<HTMLAudioElement | null>(null);
   // getVoices() is empty on first paint in some browsers; bump this once voices
   // load so the filipino/english fast path can be detected at click time.
@@ -59,6 +65,19 @@ export function ListenButton({ text, compact = false }: { text: string; compact?
     }
 
     // Server MMS path (bisaya always; filipino/english when no browser voice).
+    // Unlock the <audio> element *inside* the click before we await the fetch —
+    // iOS/Safari otherwise reject the post-await play() as non-user-initiated.
+    const a = audioRef.current ?? new Audio();
+    audioRef.current = a;
+    a.src = SILENT_WAV;
+    a.play().catch(() => {}); // claims user-gesture activation; safe if it rejects
+
+    const fail = (msg: string) => {
+      console.error(`[tts] ${msg} (lang=${language})`);
+      setState('error');
+      setTimeout(() => setState((s) => (s === 'error' ? 'idle' : s)), 2500);
+    };
+
     try {
       setState('loading');
       const res = await fetch('/api/tts', {
@@ -67,27 +86,31 @@ export function ListenButton({ text, compact = false }: { text: string; compact?
         body: JSON.stringify({ text, lang: language }),
       });
       if (!res.ok) {
-        setState('idle');
-        return; // graceful: silently no-op (e.g. 503 when sidecar is down)
+        // 503 = sidecar unreachable / TTS_SERVICE_URL unset (common on deploys
+        // where the localhost sidecar isn't reachable). Surface it, don't hide it.
+        fail(`/api/tts returned ${res.status}`);
+        return;
       }
       const url = URL.createObjectURL(await res.blob());
-      const a = audioRef.current ?? new Audio();
-      audioRef.current = a;
       a.src = url;
       a.onended = () => {
         setState('idle');
         URL.revokeObjectURL(url);
       };
-      a.onerror = () => setState('idle');
+      a.onerror = () => fail('audio element error');
       setState('playing');
       await a.play();
-    } catch {
-      setState('idle');
+    } catch (e) {
+      fail(`playback failed: ${e instanceof Error ? e.message : String(e)}`);
     }
   };
 
   const label = t.results.listen;
-  const Icon = state === 'loading' ? SpinnerGapIcon : state === 'playing' ? StopIcon : SpeakerHighIcon;
+  const Icon =
+    state === 'loading' ? SpinnerGapIcon
+    : state === 'playing' ? StopIcon
+    : state === 'error' ? WarningIcon
+    : SpeakerHighIcon;
 
   return (
     <button

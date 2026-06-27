@@ -11,16 +11,15 @@ export function TopBar() {
     const { t } = useTranslation();
     const [unread, setUnread] = useState(0);
 
-    // Quick dictionary to resolve route to title
     const getPageTitle = () => {
-        if (pathname.includes('/records/add')) return 'Add Manually';
-        if (pathname.startsWith('/records')) return 'My Records';
-        if (pathname.startsWith('/reminders')) return 'Reminders';
-        if (pathname.startsWith('/notifications')) return 'Notifications';
-        if (pathname.startsWith('/settings')) return 'Settings';
-        if (pathname.startsWith('/chat')) return 'Ask MedPal';
-        if (pathname.startsWith('/results')) return 'Results';
-        return 'Scanner'; // default fallback for /scan
+        if (pathname.includes('/records/add')) return t.topBar.addManually;
+        if (pathname.startsWith('/records')) return t.topBar.records;
+        if (pathname.startsWith('/reminders')) return t.topBar.reminders;
+        if (pathname.startsWith('/notifications')) return t.topBar.notifications;
+        if (pathname.startsWith('/settings')) return t.topBar.settings;
+        if (pathname.startsWith('/chat')) return t.topBar.chat;
+        if (pathname.startsWith('/results')) return t.topBar.results;
+        return t.topBar.scanner;
     };
 
     const isSubPage = pathname.includes('/add') || pathname.includes('/results/') || pathname.split('/').length > 2;

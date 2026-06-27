@@ -68,6 +68,16 @@ export const dictionaries: Record<Language, Dictionary> = {
             emptyDisclaimer: 'Medical AI can make mistakes. Always consult your doctor.',
             error: 'Sorry, something went wrong. Please try again.'
         },
+        topBar: {
+            scanner: 'Scanner',
+            records: 'My Records',
+            addManually: 'Add Manually',
+            reminders: 'Reminders',
+            notifications: 'Notifications',
+            settings: 'Settings',
+            chat: 'Ask MedPal',
+            results: 'Results',
+        },
     },
     filipino: {
         nav: {
@@ -136,6 +146,16 @@ export const dictionaries: Record<Language, Dictionary> = {
             emptyDisclaimer: 'Maaaring magkamali ang AI. Kumonsulta palagi sa doktor.',
             error: 'Paumanhin, may nangyaring mali. Pakisubukang muli.'
         },
+        topBar: {
+            scanner: 'Scanner',
+            records: 'Mga Rekord',
+            addManually: 'Magdagdag',
+            reminders: 'Mga Paalala',
+            notifications: 'Mga Abiso',
+            settings: 'Settings',
+            chat: 'Itanong sa MedPal',
+            results: 'Mga Resulta',
+        },
     },
     bisaya: {
         nav: {
@@ -203,6 +223,16 @@ export const dictionaries: Record<Language, Dictionary> = {
             placeholder: 'Pag-type og pangutana...',
             emptyDisclaimer: 'Basin masayop ang AI. Pagkonsulta kanunay sa doktor.',
             error: 'Pasensya, naay sayop nga nahitabo. Palihug sulayi pag-usab.'
+        },
+        topBar: {
+            scanner: 'Scanner',
+            records: 'Akong Records',
+            addManually: 'Manual nga Pag-add',
+            reminders: 'Mga Pahinumdom',
+            notifications: 'Mga Pahibalo',
+            settings: 'Settings',
+            chat: 'Pangutana sa MedPal',
+            results: 'Mga Resulta',
         },
     },
 };
