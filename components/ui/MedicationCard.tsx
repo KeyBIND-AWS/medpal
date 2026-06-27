@@ -16,6 +16,13 @@ export function MedicationCard({ medication }: { medication: MedicationRecord })
     const hasTiming = medication.timing && medication.timing.length > 0;
     const hasPurpose = medication.purpose && medication.purpose.trim() !== '' && medication.purpose !== 'Not specified';
 
+    // RxNorm verification is a NEGATIVE-only safety signal: InferRxNorm is a fuzzy matcher
+    // that confidently maps unknown names to similar-spelled wrong concepts, so a positive
+    // match isn't trustworthy enough to show a confident "verified" badge. We only surface
+    // the case where the name didn't resolve at all (false). null/undefined (fail-open or
+    // not run) => show nothing.
+    const rxnormUnverified = medication.rxnorm_verified === false;
+
     // Format Date helper
     const formatDate = (dateStr?: string | null) => {
         if (!dateStr) return 'Ongoing';
@@ -30,11 +37,22 @@ export function MedicationCard({ medication }: { medication: MedicationRecord })
         <Card className="w-full flex flex-col gap-4 p-5 hover:shadow-md transition-shadow duration-300">
             {/* Top Row: Drug details */}
             <div className="flex flex-col gap-1">
-                <div className="flex items-baseline justify-between gap-2">
-                    <h4 className="font-poppins font-extrabold text-lg text-slate-900 tracking-tight">
-                        {medication.drug_name}
-                    </h4>
-                    <span className="bg-blue-50 text-[#2B4BFF] text-xs font-bold px-2.5 py-1 rounded-lg border border-blue-100 shrink-0">
+                <div className="flex flex-wrap items-start justify-between gap-x-2 gap-y-1.5">
+                    <div className="flex items-center gap-2 flex-wrap min-w-0">
+                        <h4 className="font-poppins font-extrabold text-lg text-slate-900 tracking-tight break-words min-w-0">
+                            {medication.drug_name}
+                        </h4>
+                        {rxnormUnverified && (
+                            <span
+                                title="Couldn't auto-confirm this drug name — double-check with your pharmacist"
+                                className="flex items-center gap-1 bg-amber-50 text-amber-700 text-[10px] font-bold px-2 py-0.5 rounded-md border border-amber-200 shrink-0"
+                            >
+                                <WarningIcon className="w-3 h-3" weight="fill" />
+                                Unverified
+                            </span>
+                        )}
+                    </div>
+                    <span className="bg-blue-50 text-[#2B4BFF] text-xs font-bold px-2.5 py-1 rounded-lg border border-blue-100 shrink-0 max-w-full break-words">
                         {medication.dosage}
                     </span>
                 </div>
@@ -55,9 +73,9 @@ export function MedicationCard({ medication }: { medication: MedicationRecord })
 
             {/* Schedule & Timing Info */}
             <div className="flex flex-col gap-2 bg-slate-50 p-3 rounded-2xl border border-slate-100">
-                <div className="flex items-center justify-between text-xs text-slate-600">
-                    <span className="font-bold">Frequency:</span>
-                    <span className="font-semibold text-slate-800">{medication.frequency}</span>
+                <div className="flex items-center justify-between gap-3 text-xs text-slate-600">
+                    <span className="font-bold shrink-0">Frequency:</span>
+                    <span className="font-semibold text-slate-800 text-right min-w-0 break-words">{medication.frequency}</span>
                 </div>
 
                 {hasTiming && (

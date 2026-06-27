@@ -71,6 +71,16 @@ export default function ResultsPage() {
                 </div>
             )}
 
+            {/* Anti-hallucination: RxNorm drug-verification warning */}
+            {(resultData as any)?.ai_response?.verification_warning && (
+                <div className="flex items-start gap-3 rounded-2xl border border-amber-300 bg-amber-50 p-4 -mt-1">
+                    <WarningIcon className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" weight="fill" />
+                    <p className="text-sm text-amber-800 font-medium leading-snug">
+                        {(resultData as any).ai_response.verification_warning}
+                    </p>
+                </div>
+            )}
+
             {/* 2. Medication Cards Stack */}
             <div className="flex flex-col gap-4">
                 {resultData.medications.map((med, index) => (

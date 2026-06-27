@@ -1,12 +1,15 @@
 # MedPal Upgrade Specs — Coordination Guide
 
-Three implementation specs, designed to run **in parallel on separate chats** with minimal merge conflicts. Each spec is self-contained: an engineer (or an AI agent) can execute it cold.
+Implementation specs, designed to run **in parallel on separate chats** with minimal merge conflicts. Each spec is self-contained: an engineer (or an AI agent) can execute it cold.
+
+> **Status:** spec-01 and spec-02 are **already implemented** on branch `david/ai-scan-tts-upgrades` (Bedrock vision scan + symptom context + image preprocessing). spec-03 (TTS) was implemented alongside. spec-04 below is the **deferred RxNorm safety-net** from spec-02, still to do.
 
 | Spec | Goal | Depends on | Needs AWS? |
 |---|---|---|---|
-| [spec-01](spec-01-scan-image-preprocessing.md) | Add `sharp` image preprocessing before OCR/vision (sharper input → better extraction) | none | no |
-| [spec-02](spec-02-vision-scan-symptom-context.md) | Switch scan to **Bedrock vision** + add **symptom/condition context** + **anti-hallucination** (mismatch warnings + Comprehend Medical drug validation) | consumes spec-01 (graceful fallback if absent) | **yes** (Bedrock + Comprehend Medical) |
+| [spec-01](spec-01-scan-image-preprocessing.md) | Add `sharp` image preprocessing before OCR/vision (sharper input → better extraction) ✅ *implemented* | none | no |
+| [spec-02](spec-02-vision-scan-symptom-context.md) | Switch scan to **Bedrock vision** + add **symptom/condition context** + **mismatch** anti-hallucination ✅ *implemented (RxNorm part split to spec-04)* | consumes spec-01 | **yes** (Bedrock) |
 | [spec-03](spec-03-multilingual-tts.md) | **Text-to-speech**: Bisaya via Meta MMS (sherpa-onnx), Tagalog/English via Web Speech | none | no |
+| [spec-04](spec-04-rxnorm-validation.md) | **RxNorm drug validation** — cross-check each extracted drug against Comprehend Medical's RxNorm ontology; flag drugs that don't resolve | **spec-02** (done) | **yes** (Comprehend Medical `InferRxNorm`) |
 
 ## File ownership matrix
 
@@ -28,7 +31,11 @@ Each file is owned by exactly one spec. Run any subset concurrently; only the on
 | `tts-service/` (sidecar) | **03** | create |
 | `components/ui/ListenButton.tsx` | **03** | create |
 | `lib/tts-normalize.ts` | **03** | create |
-| `supabase_schema.sql` | **02** + **03** | append (different tables/policies) |
+| `lib/rxnorm.ts` | **04** | create |
+| `types/schema.ts` (`rxcui`/`rxnorm_verified`) | **04** | edit |
+| `supabase_schema.sql` | **02** + **03** + **04** | append (different tables/policies/columns) |
+
+**spec-04 also touches** `app/api/scan/route.ts` (+~6 lines, owned by spec-02 — already merged, so low risk), `app/results/[id]/page.tsx`, and optionally `components/ui/MedicationCard.tsx` (verification banner / badge, same separate-region rule as the ⚠️ overlap below). **It requires one IAM change:** add `comprehendmedical:InferRxNorm` to the `medpal-ai-policy`.
 
 ⚠️ **The only real overlap:** spec-02 adds a *mismatch-warning banner* and spec-03 adds a *Listen button* to both `app/results/[id]/page.tsx` and `components/ui/MedicationCard.tsx`. Both specs confine their edits to clearly separate regions (warning near the top / summary; Listen button in the Directions block), so a clean 3-way merge is easy. If you want zero risk, **merge spec-02 before spec-03** and have spec-03 rebase.
 

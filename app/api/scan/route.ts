@@ -3,6 +3,7 @@ import { createClient } from '@/utils/supabase/server';
 import { analyzePrescriptionImage } from '@/lib/prescription';
 import { analyzeImage } from '@/lib/bedrock';
 import { preprocessScanImage } from '@/lib/image-preprocess';
+import { validateMedications } from '@/lib/rxnorm';
 
 /**
  * Run the scan analysis. Primary engine = Bedrock Claude vision (reads the whole
@@ -100,12 +101,32 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // 5b. RxNorm validation safety net (deterministic drug-existence cross-check).
+    //     Runs OUTSIDE the 30s analyze timeout: N parallel InferRxNorm calls
+    //     (N = med count, usually 1–5) ≈ one short round trip. Fails open — a
+    //     Comprehend outage or missing IAM action must not flag every real drug.
+    let verificationWarning: string | null = null;
+    if (Array.isArray(aiPayload.medications) && aiPayload.medications.length) {
+      aiPayload.medications = await validateMedications(aiPayload.medications);
+      const unverified = aiPayload.medications
+        .filter((m: any) => m.rxnorm_verified === false)
+        .map((m: any) => m.drug_name);
+      if (unverified.length) {
+        verificationWarning =
+          `We couldn't automatically confirm ${unverified.join(', ')} against a medication database. ` +
+          `Please double-check the spelling with your pharmacist.`;
+        // TODO(i18n): localize via lib/dictionaries.ts like the other results strings.
+      }
+    }
+
     // 6. Save metadata to scans table. We stash the user's symptoms (and keep the
-    //    model's mismatch_warning) inside the ai_response JSONB so no schema
-    //    migration is needed — the results page reads them from ai_response.
+    //    model's mismatch_warning + the RxNorm verification_warning) inside the
+    //    ai_response JSONB so no schema migration is needed — the results page
+    //    reads them from ai_response.
     const aiResponseToStore = {
       ...aiPayload,
       symptoms: symptoms && symptoms.trim() ? symptoms.trim() : null,
+      verification_warning: verificationWarning,
     };
 
     const { data: scanRow, error: scanDbError } = await supabase
@@ -137,6 +158,8 @@ export async function POST(req: NextRequest) {
         purpose: med.purpose,
         instructions: med.instructions,
         warnings: med.warnings || null,
+        rxcui: med.rxcui || null,
+        rxnorm_verified: med.rxnorm_verified ?? null,
         is_active: true
       }));
 

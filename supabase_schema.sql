@@ -61,6 +61,8 @@ create table if not exists public.medications (
   warnings     text,
   start_date   date,
   end_date     date,
+  rxcui           text,
+  rxnorm_verified boolean,
   is_active    boolean default true,
   created_at   timestamptz default now()
 );
@@ -72,6 +74,8 @@ alter table public.medications add column if not exists end_date   date;
 alter table public.medications add column if not exists warnings   text;
 alter table public.medications add column if not exists timing     jsonb;
 alter table public.medications add column if not exists scan_id    uuid references public.scans(id) on delete cascade;
+alter table public.medications add column if not exists rxcui           text;
+alter table public.medications add column if not exists rxnorm_verified boolean;
 
 -- ── Chat messages (MedPal AI chatbot history) ──────────────────────────────
 create table if not exists public.chat_messages (
